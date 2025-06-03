@@ -12,6 +12,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
+import placeholderUrl from '@/assets/placeholder.svg';
+
 export const meta: MetaFunction = () => {
   return [
     { title: "New Remix App" },
@@ -27,7 +29,7 @@ const featuredProducts = [
     name: '高齡犬關節保健膠囊 / Senior Dog Joint Support',
     price: 980,
     originalPrice: 1200,
-    image: '/placeholder.svg',
+    image: placeholderUrl,
     category: 'supplements',
     inStock: true,
   },
@@ -35,7 +37,7 @@ const featuredProducts = [
     id: '2',
     name: '軟質寵物床墊 / Orthopedic Pet Bed',
     price: 1680,
-    image: '/placeholder.svg',
+    image: placeholderUrl,
     category: 'bedding',
     inStock: true,
   },
@@ -43,7 +45,7 @@ const featuredProducts = [
     id: '3',
     name: '易消化高齡貓糧 / Senior Cat Food',
     price: 650,
-    image: '/placeholder.svg',
+    image: placeholderUrl,
     category: 'food',
     inStock: false,
   },
@@ -51,7 +53,7 @@ const featuredProducts = [
     id: '4',
     name: '溫熱墊 / Heating Pad',
     price: 890,
-    image: '/placeholder.svg',
+    image: placeholderUrl,
     category: 'comfort',
     inStock: true,
   },
@@ -62,25 +64,25 @@ const pets = [
     name: 'Kiki',
     age: '12歲 / 12 years old',
     description: '溫柔的老狗狗，最愛曬太陽 / Gentle old dog who loves sunbathing',
-    image: '/placeholder.svg',
+    image: placeholderUrl,
   },
   {
     name: '西西',
     age: '14歲 / 14 years old',
     description: '聰明的老貓咪，很會撒嬌 / Smart old cat who loves cuddles',
-    image: '/placeholder.svg',
+    image: placeholderUrl,
   },
   {
     name: '小小',
     age: '10歲 / 10 years old',
     description: '活潑的小型犬，精神很好 / Energetic small dog, still very spirited',
-    image: '/placeholder.svg',
+    image: placeholderUrl,
   },
   {
     name: '渺渺',
     age: '13歲 / 13 years old',
     description: '安靜的老貓，喜歡溫暖的地方 / Quiet old cat who loves warm spots',
-    image: '/placeholder.svg',
+    image: placeholderUrl,
   },
 ];
 
