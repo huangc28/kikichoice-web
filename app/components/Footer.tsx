@@ -1,6 +1,7 @@
 
 import { Link } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
+import logoUrl from '@/assets/logo.png';
 
 export const Footer = () => {
   const { t } = useLanguage();
@@ -12,9 +13,7 @@ export const Footer = () => {
           {/* Brand */}
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center space-x-2 mb-4">
-              <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-pink-400 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-sm">🐾</span>
-              </div>
+              <img src={logoUrl} alt="kikichoice logo" className="w-8 h-8 object-contain" />
               <span className="text-xl font-bold text-gray-900">kikichoice</span>
             </div>
             <p className="text-gray-600 mb-4 max-w-md">
