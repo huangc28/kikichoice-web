@@ -6,6 +6,9 @@ import {
   ScrollRestoration,
 } from "@remix-run/react";
 import { Analytics } from "@vercel/analytics/react";
+import { LanguageProvider } from "@/contexts/LanguageContext";
+import { CartProvider } from "./contexts/CartContext";
+import "./tailwind.css";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -27,5 +30,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  return <Outlet />;
+  return (
+    <LanguageProvider>
+      <CartProvider>
+        <Outlet />
+      </CartProvider>
+    </LanguageProvider>
+  );
 }
