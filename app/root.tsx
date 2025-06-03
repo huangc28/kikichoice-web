@@ -10,6 +10,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { CartProvider } from "@/contexts/CartContext";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { WishlistProvider } from "@/contexts/WishlistContext";
 import styles from "./tailwind.css?url"
 
 export const links: LinksFunction = () => [
@@ -38,11 +39,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
 export default function App() {
   return (
     <TooltipProvider>
-      <LanguageProvider>
-        <CartProvider>
-          <Outlet />
-        </CartProvider>
-      </LanguageProvider>
+      <WishlistProvider>
+        <LanguageProvider>
+          <CartProvider>
+            <Outlet />
+          </CartProvider>
+        </LanguageProvider>
+      </WishlistProvider>
     </TooltipProvider>
   );
 }
