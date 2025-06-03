@@ -13,7 +13,6 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 import placeholderUrl from '@/assets/placeholder.svg';
 
-// Mock data for featured products
 const featuredProducts = [
   {
     id: '1',
