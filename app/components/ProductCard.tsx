@@ -2,6 +2,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Link } from '@remix-run/react';
 
 export interface Product {
   id: string;
@@ -51,11 +52,13 @@ export const ProductCard = ({
   return (
     <Card className={`overflow-hidden hover:shadow-lg transition-shadow ${borderClass} ${className}`}>
       <div className={`aspect-square ${backgroundClass} relative`}>
-        <img
-          src={product.image}
-          alt={product.name}
-          className="w-full h-full object-cover"
-        />
+        <Link to={`/products/${product.id}`}>
+          <img
+            src={product.image}
+            alt={product.name}
+            className="w-full h-full object-cover"
+          />
+        </Link>
         {!product.inStock && (
           <Badge variant="secondary" className="absolute top-2 right-2">
             {t('shop.out_of_stock')}
@@ -68,9 +71,11 @@ export const ProductCard = ({
         )}
       </div>
       <CardContent className="p-4">
-        <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">
-          {product.name}
-        </h3>
+        <Link to={`/products/${product.id}`}>
+          <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">
+            {product.name}
+          </h3>
+        </Link>
         {product.description && !isHomepage && (
           <p className="text-sm text-gray-600 mb-3 line-clamp-2">
             {product.description}

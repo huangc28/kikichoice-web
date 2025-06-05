@@ -154,6 +154,7 @@ const Index = () => {
                   {featuredProducts.map((product) => (
                     <div key={product.id} className="w-full flex-shrink-0 px-2">
                       <ProductCard
+                        key={product.id}
                         product={product}
                         onAddToCart={handleAddToCart}
                         variant="homepage"
