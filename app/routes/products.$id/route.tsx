@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -6,12 +5,6 @@ import { useCart } from '@/contexts/CartContext';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { Button } from '@/components/ui/button';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -320,12 +313,11 @@ const ProductDetail = () => {
                 </p>
               </div>
 
-              <Accordion type="single" collapsible className="w-full">
-                <AccordionItem value="target-audience">
-                  <AccordionTrigger className="text-left">
-                    <h3 className="text-lg font-semibold text-gray-900">適用對象</h3>
-                  </AccordionTrigger>
-                  <AccordionContent className="text-gray-700 space-y-3">
+              {/* Plain text sections replacing accordion */}
+              <div className="space-y-8">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">適用對象</h3>
+                  <div className="space-y-3">
                     <p>NEUROACT PLUS 神經元修護液適合用於需要神經元及關節保健的犬貓，特別是以下狀況的寵物：</p>
                     <ul className="space-y-2 ml-4">
                       <li>• 有神經系統健康需求的犬貓，幫助保護神經細胞，維持神經系統功能。</li>
@@ -334,79 +326,59 @@ const ProductDetail = () => {
                       <li>• 作為日常保健補充品，促進神經與關節的整體健康。</li>
                     </ul>
                     <p>產品中含有維生素B群、葡萄醣胺、MSM、水溶性薑黃素等成分，有助於神經元修復與關節保護，適合需要長期保健的犬貓使用。</p>
-                  </AccordionContent>
-                </AccordionItem>
+                  </div>
+                </div>
 
-                <AccordionItem value="usage">
-                  <AccordionTrigger className="text-left">
-                    <h3 className="text-lg font-semibold text-gray-900">使用方式</h3>
-                  </AccordionTrigger>
-                  <AccordionContent className="text-gray-700 space-y-3">
-                    <ul className="space-y-2">
-                      <li>• 每天的餵食量建議分為早晚各一次給予，建議持續餵食二週以上。</li>
-                      <li>• 可直接口服，或將修護液混合於食物中餵食。</li>
-                    </ul>
-                  </AccordionContent>
-                </AccordionItem>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">使用方式</h3>
+                  <ul className="space-y-2">
+                    <li>• 每天的餵食量建議分為早晚各一次給予，建議持續餵食二週以上。</li>
+                    <li>• 可直接口服，或將修護液混合於食物中餵食。</li>
+                  </ul>
+                </div>
 
-                <AccordionItem value="dosage">
-                  <AccordionTrigger className="text-left">
-                    <h3 className="text-lg font-semibold text-gray-900">建議用量</h3>
-                  </AccordionTrigger>
-                  <AccordionContent className="text-gray-700">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="bg-blue-50 p-4 rounded-lg">
-                        <h4 className="font-medium text-blue-800 mb-2">小型犬/貓（10公斤以下）</h4>
-                        <p className="text-sm text-blue-700">導入期（0~14天）：每日2ml</p>
-                        <p className="text-sm text-blue-700">維持期（15天起）：每日1ml</p>
-                      </div>
-                      <div className="bg-green-50 p-4 rounded-lg">
-                        <h4 className="font-medium text-green-800 mb-2">中型犬/貓（10-20公斤）</h4>
-                        <p className="text-sm text-green-700">導入期：每日4ml</p>
-                        <p className="text-sm text-green-700">維持期：每日2ml</p>
-                      </div>
-                      <div className="bg-purple-50 p-4 rounded-lg">
-                        <h4 className="font-medium text-purple-800 mb-2">大型犬（20-40公斤或以上）</h4>
-                        <p className="text-sm text-purple-700">導入期：每日6ml</p>
-                        <p className="text-sm text-purple-700">維持期：每日3ml</p>
-                      </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">建議用量</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <h4 className="font-medium text-blue-800 mb-2">小型犬/貓（10公斤以下）</h4>
+                      <p className="text-sm text-blue-700">導入期（0~14天）：每日2ml</p>
+                      <p className="text-sm text-blue-700">維持期（15天起）：每日1ml</p>
                     </div>
-                  </AccordionContent>
-                </AccordionItem>
+                    <div className="bg-green-50 p-4 rounded-lg">
+                      <h4 className="font-medium text-green-800 mb-2">中型犬/貓（10-20公斤）</h4>
+                      <p className="text-sm text-green-700">導入期：每日4ml</p>
+                      <p className="text-sm text-green-700">維持期：每日2ml</p>
+                    </div>
+                    <div className="bg-purple-50 p-4 rounded-lg">
+                      <h4 className="font-medium text-purple-800 mb-2">大型犬（20-40公斤或以上）</h4>
+                      <p className="text-sm text-purple-700">導入期：每日6ml</p>
+                      <p className="text-sm text-purple-700">維持期：每日3ml</p>
+                    </div>
+                  </div>
+                </div>
 
-                <AccordionItem value="packaging">
-                  <AccordionTrigger className="text-left">
-                    <h3 className="text-lg font-semibold text-gray-900">包裝附屬</h3>
-                  </AccordionTrigger>
-                  <AccordionContent className="text-gray-700">
-                    <p>內附滴管，30ml包裝每刻度為0.5ml，60ml包裝請依實際標示使用。</p>
-                  </AccordionContent>
-                </AccordionItem>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">包裝附屬</h3>
+                  <p>內附滴管，30ml包裝每刻度為0.5ml，60ml包裝請依實際標示使用。</p>
+                </div>
 
-                <AccordionItem value="storage">
-                  <AccordionTrigger className="text-left">
-                    <h3 className="text-lg font-semibold text-gray-900">保存方式與注意事項</h3>
-                  </AccordionTrigger>
-                  <AccordionContent className="text-gray-700 space-y-2">
-                    <ul className="space-y-2">
-                      <li>• 請保存於乾燥陰涼處，避免陽光直射與高溫，並遠離火源。</li>
-                      <li>• 開封後請盡速於保存期限內食用完畢。</li>
-                      <li>• 如有沉澱物屬正常現象。</li>
-                      <li>• 可依獸醫師建議調整用量。</li>
-                    </ul>
-                  </AccordionContent>
-                </AccordionItem>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">保存方式與注意事項</h3>
+                  <ul className="space-y-2">
+                    <li>• 請保存於乾燥陰涼處，避免陽光直射與高溫，並遠離火源。</li>
+                    <li>• 開封後請盡速於保存期限內食用完畢。</li>
+                    <li>• 如有沉澱物屬正常現象。</li>
+                    <li>• 可依獸醫師建議調整用量。</li>
+                  </ul>
+                </div>
 
-                <AccordionItem value="ingredients">
-                  <AccordionTrigger className="text-left">
-                    <h3 className="text-lg font-semibold text-gray-900">主要成分</h3>
-                  </AccordionTrigger>
-                  <AccordionContent className="text-gray-700">
-                    <p>維生素B群（B1, B2, B6, B12）、葡萄醣胺、甲基硫醯基甲烷（MSM）、水溶性薑黃素、橙皮苷、酵母萃取物、魚胜肽、綠貽貝脂質萃取物、魚油（含EPA、DHA）。</p>
-                    <p className="mt-3 text-sm text-gray-600 italic">如需更詳細的個別建議，建議諮詢獸醫師。</p>
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">主要成分</h3>
+                  <p>維生素B群（B1, B2, B6, B12）、葡萄醣胺、甲基硫醯基甲烷（MSM）、水溶性薑黃素、橙皮苷、酵母萃取物、魚胜肽、綠貽貝脂質萃取物、魚油（含EPA、DHA）。</p>
+                  <p className="mt-3 text-sm text-gray-600 italic">如需更詳細的個別建議，建議諮詢獸醫師。</p>
+                </div>
+              </div>
             </div>
           </div>
         </section>
