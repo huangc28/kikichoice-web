@@ -31,10 +31,10 @@ const Wishlist = () => {
 
   // Mock popular wishlist items
   const popularWishlistItems = [
-    { name: '高齡犬輪椅 / Senior Dog Wheelchair', count: 12 },
-    { name: '貓咪升降餵食器 / Adjustable Cat Feeder', count: 8 },
-    { name: '寵物按摩器 / Pet Massager', count: 6 },
-    { name: '溫控水碗 / Temperature Control Water Bowl', count: 5 },
+      { name: '高齡犬輪椅', count: 12 },
+  { name: '貓咪升降餵食器', count: 8 },
+  { name: '寵物按摩器', count: 6 },
+  { name: '溫控水碗', count: 5 },
   ];
 
   return (
@@ -68,7 +68,7 @@ const Wishlist = () => {
                     value={productName}
                     onChange={(e) => setProductName(e.target.value)}
                     required
-                    placeholder="例如：高齡犬輪椅 / e.g., Senior dog wheelchair"
+                    placeholder="例如：高齡犬輪椅"
                     className="border-blue-300 focus:border-blue-500"
                   />
                 </div>
@@ -79,20 +79,20 @@ const Wishlist = () => {
                     id="description"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder="請描述您需要的功能或特色 / Please describe the features you need"
+                    placeholder="請描述您需要的功能或特色"
                     rows={3}
                     className="border-blue-300 focus:border-blue-500"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="requestedBy">您的名字 / Your Name</Label>
+                  <Label htmlFor="requestedBy">您的名字</Label>
                   <Input
                     id="requestedBy"
                     value={requestedBy}
                     onChange={(e) => setRequestedBy(e.target.value)}
                     required
-                    placeholder="請輸入您的名字 / Please enter your name"
+                    placeholder="請輸入您的名字"
                     className="border-blue-300 focus:border-blue-500"
                   />
                 </div>
@@ -112,7 +112,7 @@ const Wishlist = () => {
             <Card className="border-green-200">
               <CardHeader>
                 <CardTitle className="text-xl text-gray-900">
-                  熱門需求 / Popular Requests
+                  熱門需求
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -121,7 +121,7 @@ const Wishlist = () => {
                     <div key={index} className="flex justify-between items-center p-3 bg-gradient-to-r from-yellow-50 to-green-50 rounded-lg border border-green-100">
                       <span className="font-medium text-gray-900">{item.name}</span>
                       <span className="text-sm text-blue-600 font-semibold">
-                        {item.count} 次請求 / requests
+                        {item.count} 次請求
                       </span>
                     </div>
                   ))}
@@ -134,7 +134,7 @@ const Wishlist = () => {
               <Card className="border-yellow-200">
                 <CardHeader>
                   <CardTitle className="text-xl text-gray-900">
-                    您的請求 / Your Requests
+                    您的請求
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -146,7 +146,7 @@ const Wishlist = () => {
                           <p className="text-sm text-gray-600 mt-1">{item.description}</p>
                         )}
                         <p className="text-xs text-gray-500 mt-2">
-                          提交於 / Submitted on: {item.createdAt.toLocaleDateString()}
+                          提交於：{item.createdAt.toLocaleDateString()}
                         </p>
                       </div>
                     ))}

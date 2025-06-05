@@ -1,0 +1,196 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# Row Level Security (RLS) in WebVitals API
+
+## Overview
+
+The WebVitals API project uses Supabase for database access with Clerk for authentication. Row Level Security (RLS) policies are implemented to ensure proper data access controls that align with the authorization patterns already established in the API middleware.
+
+## Authentication Integration
+
+- **Clerk to Supabase Integration**: The project uses Clerk for authentication, but needs to enforce access controls in Supabase via RLS
+- **JWT Claims Mapping**: Clerk's JWT claims are used in Supabase RLS policies
+  - `auth.jwt()->>'user_id'` from Clerk maps to `auth_provider_id` in the users table
+  - `auth.jwt()->>'org_id'` from Clerk maps to `auth_provider_id` in the organisations table
+  - Additional JWT claims like `role` and `system_admin` can be leveraged for access control
+
+## Key Tables with RLS
+
+The main tables requiring RLS protection are:
+
+1. **Users Table** - Authentication-based access
+2. **Organisations Table** - Membership-based access
+3. **Organisation_Members Table** - Organisation admin controls (pivot table)
+4. **Teams Table** - Organisation membership and team admin controls
+5. **Team_Members Table** - Team admin controls (pivot table)
+6. **Sites Table** - Team membership controls
+7. **Pages Table** - Site ownership and team membership
+8. **Snapshot_Groups Table** - Site ownership and team membership
+9. **Snapshots Table** - Site ownership with special service role access
+10. **Device_Profiles Table** - Default profiles public, custom profiles team-restricted
+11. **Device_Profile_Entities Table** - Relationship mapping (pivot table)
+12. **Site_Settings Table** - Site ownership restrictions
+13. **Regions Table** - Public for reading, admin-only for management
+
+## RLS Policy Structure
+
+Each policy follows this pattern:
+```sql
+CREATE POLICY "Descriptive policy name" ON table_name
+  FOR operation_type
+  [TO role_name]
+  USING (condition_expression)
+  [WITH CHECK (check_expression)];
+```
+
+Example:
+```sql
+CREATE POLICY "Only organization admins can insert in table"
+  ON table_name
+  FOR INSERT
+  TO authenticated
+  WITH CHECK (
+    ((auth.jwt()->>'org_role') = 'org:admin')
+      AND
+    (organization_id = (auth.jwt()->>'org_id'))
+  );
+```
+
+## Resource Ownership Patterns
+
+The WebVitals API follows these ownership hierarchies:
+
+1. **Organizations → Teams → Sites → Pages**
+   - Organizations own teams
+   - Teams own sites
+   - Sites contain pages
+
+2. **Sites → Snapshot Groups → Snapshots**
+   - Sites have snapshot groups
+   - Snapshot groups contain snapshots for different pages/regions/device profiles
+
+3. **Organizations/Teams → Users (via membership tables)**
+   - Users belong to organizations through organisation_members
+   - Users belong to teams through team_members
+
+## Junction/Pivot Table Handling
+
+A consistent pattern for junction/pivot tables has been established:
+
+1. **Block Direct API Access**:
+   ```sql
+   ALTER TABLE pivot_table_name ENABLE ROW LEVEL SECURITY;
+
+   CREATE POLICY "Block direct API access" ON pivot_table_name
+     FOR ALL
+     USING (false);
+   ```
+
+2. **Alternative API Endpoints**:
+   Instead of directly accessing these tables, proper resource-oriented endpoints are provided:
+   - `/organisations/{uuid}/members` instead of direct access to `organisation_members`
+   - `/teams/{uuid}/members` instead of direct access to `team_members`
+   - Device profile entities are managed through device profile endpoints
+
+## Best Practices Learned
+
+1. **Policy Naming**: Each policy should have a descriptive name in double quotes that clearly states its purpose
+   ```sql
+   CREATE POLICY "Users can only read their own record" ON users
+   ```
+
+2. **Direct JWT Claims**: Use direct JWT claim checks instead of custom functions for better performance
+   ```sql
+   -- Preferred:
+   USING (auth.jwt()->>'system_admin' = 'true')
+
+   -- Avoid:
+   USING (is_system_admin())
+   ```
+
+3. **Organization ID Mapping**: For organization-related checks, you can use the JWT claim directly
+   ```sql
+   -- Direct check for users who are members of the current organization
+   WHERE organisations.auth_provider_id = (auth.jwt()->>'org_id')
+   ```
+
+4. **System Admin Access**: System admin access should be granted through JWT claims
+   ```sql
+   -- Allow system admins to bypass normal restrictions
+   OR auth.jwt()->>'system_admin' = 'true'
+   ```
+
+5. **Descriptive Comments**: Include comments that explain the purpose of each policy condition
+
+6. **EXISTS Subqueries**: Most policies use EXISTS clauses with joins to check authorization
+   ```sql
+   EXISTS (
+     SELECT 1 FROM team_members
+     JOIN users ON users.id = team_members.user_id
+     JOIN sites ON sites.team_id = team_members.team_id
+     WHERE sites.id = pages.site_id
+     AND users.auth_provider_id = (SELECT auth.jwt()->>'user_id')
+   )
+   ```
+
+7. **Special Case Handling**: Some resources have special rules
+   - `system_default` device profiles are read-only for all users
+   - Regions table is read-only via API, with modifications requiring service_role
+
+## Common Access Patterns By Operation
+
+1. **SELECT Operations**:
+   - Users can read their own records
+   - Members can read resources owned by their organization/team
+   - All authenticated users can read public resources (regions, system defaults)
+
+2. **INSERT Operations**:
+   - Any authenticated user can create their own resources (organizations)
+   - Organization/team admins can create resources within their scope
+   - System admins can create any resource
+
+3. **UPDATE Operations**:
+   - Users can update their own records
+   - Organization/team admins can update resources within their scope
+   - System admins can update any resource
+
+4. **DELETE Operations**:
+   - Often follows the same pattern as UPDATE
+   - Some resources may have more restrictive delete policies
+
+## Implementation Notes
+
+1. **Performance Considerations**:
+   - Complex RLS policies can impact query performance
+   - Direct JWT claim checks are more efficient than custom functions
+   - Avoid unnecessary JOINs when possible
+   - Consider splitting complex OR conditions into separate policies
+
+2. **JWT Claims Configuration**:
+   - Clerk must be configured to include all necessary claims in the JWT token
+   - Key claims include: user_id, org_id, org_role, system_admin, role
+
+3. **Testing Strategy**:
+   - Test policies with different user roles (system admin, org admin, team admin, team member)
+   - Test across different organizations to ensure proper isolation
+   - Verify that webhook service roles have appropriate access
+
+4. **Organizational Hierarchy**:
+   - The policies follow the hierarchy: System Admin > Organisation Admin > Team Admin > Team Member
+   - Each level inherits access from the levels below it
+   - System admins have universal access
+
+5. **Service Role Access**:
+   - Some operations (like webhooks) require bypassing RLS
+   - Use the Supabase service_role key for these operations
+   - Service role bypasses all RLS policies
+
+## Next Steps
+
+1. **Implementation**: Apply the RLS policies to the appropriate tables in Supabase
+2. **Testing**: Thoroughly test access controls for different user roles
+3. **Monitoring**: Watch for performance impacts from complex RLS policies
+4. **Refinement**: Adjust policies based on real-world usage patterns

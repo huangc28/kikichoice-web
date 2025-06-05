@@ -5,15 +5,15 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useCart } from '@/contexts/CartContext';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
+import { ProductCard, type Product } from '@/components/ProductCard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 import placeholderUrl from '@/assets/placeholder.svg';
 
-const featuredProducts = [
+const featuredProducts: Product[] = [
   {
     id: '1',
     name: '高齡犬關節保健膠囊',
@@ -153,44 +153,11 @@ const Index = () => {
                 >
                   {featuredProducts.map((product) => (
                     <div key={product.id} className="w-full flex-shrink-0 px-2">
-                      <Card className="overflow-hidden hover:shadow-lg transition-shadow border-green-100">
-                        <div className="aspect-square bg-gradient-to-br from-yellow-100 to-green-100 relative">
-                          <img
-                            src={product.image}
-                            alt={product.name}
-                            className="w-full h-full object-cover"
-                          />
-                          {!product.inStock && (
-                            <Badge variant="secondary" className="absolute top-2 right-2">
-                              {t('shop.out_of_stock')}
-                            </Badge>
-                          )}
-                        </div>
-                        <CardContent className="p-4">
-                          <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">
-                            {product.name}
-                          </h3>
-                          <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center space-x-2">
-                              <span className="text-lg font-bold text-blue-600">
-                                NT$ {product.price.toLocaleString()}
-                              </span>
-                              {product.originalPrice && (
-                                <span className="text-sm text-gray-500 line-through">
-                                  NT$ {product.originalPrice.toLocaleString()}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          <Button
-                            onClick={() => handleAddToCart(product)}
-                            disabled={!product.inStock}
-                            className="w-full bg-green-500 hover:bg-green-600 text-white rounded-full"
-                          >
-                            {t('shop.add_to_cart')}
-                          </Button>
-                        </CardContent>
-                      </Card>
+                      <ProductCard
+                        product={product}
+                        onAddToCart={handleAddToCart}
+                        variant="homepage"
+                      />
                     </div>
                   ))}
                 </div>
@@ -221,44 +188,12 @@ const Index = () => {
             {/* Desktop Grid */}
             <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-6">
               {featuredProducts.map((product) => (
-                <Card key={product.id} className="overflow-hidden hover:shadow-lg transition-shadow border-green-100">
-                  <div className="aspect-square bg-gradient-to-br from-yellow-100 to-green-100 relative">
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      className="w-full h-full object-cover"
-                    />
-                    {!product.inStock && (
-                      <Badge variant="secondary" className="absolute top-2 right-2">
-                        {t('shop.out_of_stock')}
-                      </Badge>
-                    )}
-                  </div>
-                  <CardContent className="p-4">
-                    <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">
-                      {product.name}
-                    </h3>
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-lg font-bold text-blue-600">
-                          NT$ {product.price.toLocaleString()}
-                        </span>
-                        {product.originalPrice && (
-                          <span className="text-sm text-gray-500 line-through">
-                            NT$ {product.originalPrice.toLocaleString()}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <Button
-                      onClick={() => handleAddToCart(product)}
-                      disabled={!product.inStock}
-                      className="w-full bg-green-500 hover:bg-green-600 text-white rounded-full"
-                    >
-                      {t('shop.add_to_cart')}
-                    </Button>
-                  </CardContent>
-                </Card>
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  onAddToCart={handleAddToCart}
+                  variant="homepage"
+                />
               ))}
             </div>
           </div>

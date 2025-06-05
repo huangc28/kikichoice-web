@@ -101,7 +101,7 @@ const Cart = () => {
                         onClick={() => removeItem(item.id)}
                         className="text-red-600 hover:text-red-700 hover:bg-red-50"
                       >
-                        移除 / Remove
+                        移除
                       </Button>
                     </div>
                   </div>
@@ -115,16 +115,16 @@ const Cart = () => {
             <Card className="sticky top-4">
               <CardContent className="p-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">
-                  訂單摘要 / Order Summary
+                  訂單摘要
                 </h2>
 
                 <div className="space-y-3 mb-4">
                   <div className="flex justify-between text-gray-600">
-                    <span>小計 / Subtotal</span>
+                    <span>小計</span>
                     <span>NT$ {getTotalPrice().toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between text-gray-600">
-                    <span>運費 / Shipping</span>
+                    <span>運費</span>
                     <span>NT$ 60</span>
                   </div>
                   <Separator />
@@ -145,7 +145,7 @@ const Cart = () => {
                     onClick={clearCart}
                     className="w-full border-gray-300 text-gray-700 hover:bg-gray-50 rounded-full"
                   >
-                    清空購物車 / Clear Cart
+                    清空購物車
                   </Button>
                 </div>
               </CardContent>
