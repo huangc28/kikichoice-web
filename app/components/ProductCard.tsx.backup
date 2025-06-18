@@ -1,12 +1,19 @@
-import { useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Link } from '@remix-run/react';
-import { type Product } from '@/routes/shop/api';
 
-import placeholderUrl from '@/assets/placeholder.svg';
+export interface Product {
+  id: string;
+  name: string;
+  price: number;
+  originalPrice?: number;
+  image: string;
+  inStock: boolean;
+  description?: string;
+  category?: string;
+}
 
 interface ProductCardProps {
   product: Product;
@@ -24,7 +31,6 @@ export const ProductCard = ({
   className = ''
 }: ProductCardProps) => {
   const { t } = useLanguage();
-  const [imageError, setImageError] = useState(false);
 
   const isHomepage = variant === 'homepage';
   const backgroundClass = isHomepage
@@ -43,21 +49,14 @@ export const ProductCard = ({
     ? 'bg-green-500 hover:bg-green-600'
     : 'bg-orange-500 hover:bg-orange-600';
 
-  const handleImageError = () => {
-    setImageError(true);
-  };
-
-  const imageSource = imageError || !product.image ? placeholderUrl : product.image;
-
   return (
     <Card className={`overflow-hidden hover:shadow-lg transition-shadow ${borderClass} ${className}`}>
       <div className={`aspect-square ${backgroundClass} relative`}>
-        <Link to={`/products/${product.uuid}`}>
+        <Link to={`/products/${product.id}`}>
           <img
-            src={imageSource}
+            src={product.image}
             alt={product.name}
             className="w-full h-full object-cover"
-            onError={handleImageError}
           />
         </Link>
         {!product.inStock && (
@@ -72,7 +71,7 @@ export const ProductCard = ({
         )}
       </div>
       <CardContent className="p-4">
-        <Link to={`/products/${product.uuid}`}>
+        <Link to={`/products/${product.id}`}>
           <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">
             {product.name}
           </h3>

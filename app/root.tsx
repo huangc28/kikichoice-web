@@ -4,14 +4,22 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useLoaderData,
 } from "@remix-run/react";
-import type { LinksFunction } from '@vercel/remix'
+import { json, type LinksFunction, type LoaderFunctionArgs } from '@vercel/remix'
 import { Analytics } from "@vercel/analytics/react";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { CartProvider } from "@/contexts/CartContext";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { WishlistProvider } from "@/contexts/WishlistContext";
+import { getClientEnv } from "@/lib/env.server";
 import styles from "./tailwind.css?url"
+
+export const loader = async (args: LoaderFunctionArgs) => {
+  return json({
+    ENV: getClientEnv(),
+  });
+};
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: styles },
@@ -61,12 +69,20 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
+  const { ENV } = useLoaderData<typeof loader>();
+
   return (
     <TooltipProvider>
       <WishlistProvider>
         <LanguageProvider>
           <CartProvider>
             <Outlet />
+            {/* Inject ENV into window object for client-side access */}
+            <script
+              dangerouslySetInnerHTML={{
+                __html: `window.ENV = ${JSON.stringify(ENV)}`,
+              }}
+            />
           </CartProvider>
         </LanguageProvider>
       </WishlistProvider>
