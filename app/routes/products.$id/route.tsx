@@ -274,6 +274,45 @@ export default function ProductDetail() {
               <p className="text-gray-700 mb-2">{product.shortDescription}</p>
             </div>
 
+            {/* Product Variants Section - Moved above quantity */}
+            {product.variants.length > 0 && (
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                  商品規格 / Product Variants
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {product.variants.map((variant, index) => (
+                    <div key={index} className="border rounded-lg p-3 hover:border-orange-300 transition-colors">
+                      <div className="flex items-center space-x-3">
+                        <img
+                          src={variant.image_url}
+                          alt={variant.name}
+                          className="w-12 h-12 object-cover rounded"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-medium text-gray-900 text-sm">
+                            {variant.name}
+                          </h4>
+                          <p className="text-xs text-gray-500">SKU: {variant.sku}</p>
+                          <div className="flex justify-between items-center mt-1">
+                            <p className="text-sm font-bold text-orange-600">
+                              NT$ {variant.price.toLocaleString()}
+                            </p>
+                            <Badge 
+                              variant={variant.stock_count > 0 ? "default" : "secondary"} 
+                              className={`text-xs ${variant.stock_count > 0 ? "bg-green-500" : ""}`}
+                            >
+                              {variant.stock_count > 0 ? `庫存 ${variant.stock_count}` : '缺貨'}
+                            </Badge>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Add to Cart */}
             <div className="mb-8">
               <div className="flex items-center space-x-4 mb-4">
@@ -347,42 +386,6 @@ export default function ProductDetail() {
               <div className="space-y-6 text-gray-700 leading-relaxed">
                 <div dangerouslySetInnerHTML={{ __html: product.fullDescription }} />
               </div>
-            </div>
-          </section>
-        )}
-
-        {/* Variants Section */}
-        {product.variants.length > 0 && (
-          <section className="mt-16">
-            <h2 className="text-2xl font-bold text-gray-900 mb-8">
-              商品規格 / Product Variants
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {product.variants.map((variant, index) => (
-                <Card key={index} className="overflow-hidden hover:shadow-lg transition-shadow">
-                  <div className="aspect-square bg-gray-100">
-                    <img
-                      src={variant.image_url}
-                      alt={variant.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <CardContent className="p-4">
-                    <h3 className="font-semibold text-gray-900 mb-2">
-                      {variant.name}
-                    </h3>
-                    <p className="text-sm text-gray-600 mb-2">SKU: {variant.sku}</p>
-                    <div className="flex justify-between items-center">
-                      <p className="text-lg font-bold text-orange-600">
-                        NT$ {variant.price.toLocaleString()}
-                      </p>
-                      <Badge variant={variant.stock_count > 0 ? "default" : "secondary"} className={variant.stock_count > 0 ? "bg-green-500" : ""}>
-                        {variant.stock_count > 0 ? `庫存 ${variant.stock_count}` : '缺貨'}
-                      </Badge>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
             </div>
           </section>
         )}
