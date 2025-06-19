@@ -63,7 +63,6 @@ const Shop = () => {
 
   // Ensure products is always an array of Product
   const products = (loaderData.products || []) as Product[];
-  console.log('* 1', products);
   const error = loaderData.error;
 
   const categories = useMemo(() => getCategories(products), [products]);
