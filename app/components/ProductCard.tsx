@@ -49,10 +49,13 @@ export const ProductCard = ({
 
   const imageSource = imageError || !product.image ? placeholderUrl : product.image;
 
+  // Create the product URL with slug and UUID
+  const productUrl = `/products/${product.slug}-${product.uuid}`;
+
   return (
     <Card className={`overflow-hidden hover:shadow-lg transition-shadow ${borderClass} ${className}`}>
       <div className={`aspect-square ${backgroundClass} relative`}>
-        <Link to={`/products/${product.uuid}`}>
+        <Link to={productUrl}>
           <img
             src={imageSource}
             alt={product.name}
@@ -72,7 +75,7 @@ export const ProductCard = ({
         )}
       </div>
       <CardContent className="p-4">
-        <Link to={`/products/${product.uuid}`}>
+        <Link to={productUrl}>
           <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">
             {product.name}
           </h3>

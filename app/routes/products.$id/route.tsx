@@ -74,6 +74,10 @@ const ProductDetail = () => {
   const { id } = useParams();
   const { t } = useLanguage();
   const { addItem } = useCart();
+
+  // Console log the $id parameter to verify it receives the slug-uuid format
+  console.log('Product detail page $id parameter:', id);
+
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
 

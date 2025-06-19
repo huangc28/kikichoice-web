@@ -9,19 +9,19 @@ import { ProductCard } from '@/components/ProductCard';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search } from 'lucide-react';
-import { fetchProductsForLoader, type Product } from './api';
+import { fetchProducts, type Product } from './api';
 
 // Remix Loader - Fetch products from API
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   try {
-    const products = await fetchProductsForLoader();
+    const products = await fetchProducts();
 
     return json({
       products: products as Product[],
       error: null,
     });
   } catch (error) {
-    console.error('Failed to fetch products:', error);
+    console.error('❌ Failed to fetch products:', error);
 
     return json({
       products: [] as Product[],
@@ -63,6 +63,7 @@ const Shop = () => {
 
   // Ensure products is always an array of Product
   const products = (loaderData.products || []) as Product[];
+  console.log('* 1', products);
   const error = loaderData.error;
 
   const categories = useMemo(() => getCategories(products), [products]);

@@ -1,4 +1,3 @@
-import { getApiUrl } from '@/lib/env.client';
 import { getClientEnv } from '@/lib/env.server';
 
 // API Response Types
@@ -20,6 +19,7 @@ export interface ApiProduct {
   primary_image_url: string;
   has_variant: boolean;
   variant_count: number;
+  slug: string;
 }
 
 export interface ProductsApiResponse {
@@ -32,6 +32,8 @@ export interface ProductsApiResponse {
 export interface Product {
   uuid: string;
   name: string;
+  sku: string;
+  slug: string;
   price: number;
   originalPrice?: number;
   image: string;
@@ -42,43 +44,22 @@ export interface Product {
 
 // Transform API product to our Product interface
 export function transformApiProduct(apiProduct: ApiProduct): Product {
-  return {
+  return{
     uuid: apiProduct.uuid,
     name: apiProduct.name,
+    sku: apiProduct.sku,
+    slug: apiProduct.slug,
     price: apiProduct.price,
     originalPrice: apiProduct.original_price || undefined,
     image: apiProduct.primary_image_url,
-    inStock: apiProduct.stock_count > 0 && apiProduct.ready_for_sale,
+    inStock: apiProduct.stock_count > 0,
     description: apiProduct.short_desc || undefined,
     category: apiProduct.category || undefined,
   };
 }
 
 // Server-side API call (for loaders)
-export async function fetchProducts(apiUrl: string): Promise<Product[]> {
-  try {
-    const response = await fetch(`${apiUrl}/v1/products`);
-
-    if (!response.ok) {
-      throw new Error(`API request failed: ${response.status} ${response.statusText}`);
-    }
-
-    const data: ProductsApiResponse = await response.json();
-    return data.data.products.map(transformApiProduct);
-  } catch (error) {
-    console.error('Error fetching products:', error);
-    throw error;
-  }
-}
-
-// Client-side API call (for components)
-export async function fetchProductsClient(): Promise<Product[]> {
-  const apiUrl = getApiUrl();
-  return fetchProducts(apiUrl);
-}
-
-// Server-side loader helper
-export async function fetchProductsForLoader(): Promise<Product[]> {
+export async function fetchProducts(): Promise<Product[]> {
   const env = getClientEnv();
   const apiUrl = env.API_URL;
 
@@ -86,5 +67,12 @@ export async function fetchProductsForLoader(): Promise<Product[]> {
     throw new Error('API_URL is not configured');
   }
 
-  return fetchProducts(apiUrl);
+  const response = await fetch(`${apiUrl}/v1/products`);
+
+  if (!response.ok) {
+    throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+  }
+
+  const data: ProductsApiResponse = await response.json();
+  return data.data.products.map(transformApiProduct);
 }
