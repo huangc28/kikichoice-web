@@ -8,9 +8,11 @@ import { Footer } from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { tryCatch } from '@/lib/try-catch';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-import { fetchProductDetail } from './api.js';
+import { fetchProductDetail } from './api/fetch-prod-detail.js';
+import { fetchGithubMdx } from './api/fetch-prod-desc.js';
 
 // Extract UUID from slug-uuid format
 function extractUuidFromParam(param: string): string {
@@ -26,21 +28,23 @@ export async function loader({ params }: LoaderFunctionArgs) {
     throw new Response('Product ID is required', { status: 400 });
   }
 
-  try {
-    const uuid = extractUuidFromParam(id);
-    const product = await fetchProductDetail(uuid);
-    return json({ product, error: null });
-  } catch (error) {
-    if (error instanceof Response) {
-      throw error; // Re-throw Response errors (like 404)
-    }
-
-    console.error('Error fetching product:', error);
+  const uuid = extractUuidFromParam(id);
+  const [product, fetchError] = await tryCatch(fetchProductDetail(uuid));
+  if (fetchError) {
+    console.error(`❌ whoops, product: ${uuid} does not exist`, fetchError);
     return json({
       product: null,
-      error: error instanceof Error ? error.message : 'Failed to load product'
+      error: fetchError instanceof Error ? fetchError.message : 'Failed to load product'
     }, { status: 500 });
   }
+
+  const [mdx, mdxError] = await tryCatch(fetchGithubMdx(product!.sku));
+  if (mdxError) {
+    console.warn(`⚠️ whoops, product: ${product!.sku} does not have description yet`, mdxError);
+    return json({ product, error: null });
+  }
+  product!.fullDescription = mdx ?? '';
+  return json({ product, error: null });
 }
 
 // Loading Skeleton Components
@@ -298,8 +302,8 @@ export default function ProductDetail() {
                             <p className="text-sm font-bold text-orange-600">
                               NT$ {variant.price.toLocaleString()}
                             </p>
-                            <Badge 
-                              variant={variant.stock_count > 0 ? "default" : "secondary"} 
+                            <Badge
+                              variant={variant.stock_count > 0 ? "default" : "secondary"}
                               className={`text-xs ${variant.stock_count > 0 ? "bg-green-500" : ""}`}
                             >
                               {variant.stock_count > 0 ? `庫存 ${variant.stock_count}` : '缺貨'}

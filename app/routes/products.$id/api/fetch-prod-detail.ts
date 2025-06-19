@@ -114,3 +114,4 @@ export async function fetchProductDetail(uuid: string): Promise<ProductDetail> {
 
   return transformApiProductDetail(apiProduct);
 }
+
