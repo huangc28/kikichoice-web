@@ -363,7 +363,7 @@ export default function ProductDetail() {
                       </Button>
                     </div>
                     <span className="text-sm text-gray-500">
-                      (最多 {product.stockCount} 件 / Max {product.stockCount} items)
+                      (最多 {product.stockCount} 件)
                     </span>
                   </div>
 
