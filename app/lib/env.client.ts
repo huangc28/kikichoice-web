@@ -3,6 +3,7 @@ declare global {
     ENV: {
       API_URL?: string;
       NODE_ENV?: string;
+      GITHUB_RAW_CONTENT_URL?: string;
     };
   }
 }

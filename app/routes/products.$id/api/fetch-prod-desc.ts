@@ -1,8 +1,10 @@
+import { getClientEnv } from '@/lib/env.server';
+
 export async function fetchGithubMdx(sku: string): Promise<string> {
-  const url = `https://raw.githubusercontent.com/huangc28/kikichoice-mdx/main/${sku}.mdx`;
+  const env = getClientEnv();
+  const url = `${env.GITHUB_RAW_CONTENT_URL}/${sku}.mdx`;
   const res = await fetch(url, {
     // headers: {
-    //   // optional but recommended for higher rate-limit
     //   Authorization: `token ${process.env.GITHUB_PAT ?? ''}`,
     // },
   });

@@ -3,8 +3,7 @@ export function getClientEnv() {
   return {
     API_URL: process.env.API_URL,
     NODE_ENV: process.env.NODE_ENV,
-    // Add other client-safe environment variables here
-    // NEVER expose secrets like API keys, database URLs, etc.
+    GITHUB_RAW_CONTENT_URL: process.env.GITHUB_RAW_CONTENT_URL,
   };
 }
 

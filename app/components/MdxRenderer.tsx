@@ -6,7 +6,6 @@ interface MdxRendererProps {
 }
 
 export function MdxRenderer({ mdxContent }: MdxRendererProps) {
-  console.log('* 0', mdxContent);
   const [reactElement, setReactElement] = useState<React.ReactElement | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
