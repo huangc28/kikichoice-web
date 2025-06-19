@@ -5,6 +5,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useCart } from '@/contexts/CartContext';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
+import { MdxRenderer } from '@/components/MdxRenderer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -388,7 +389,16 @@ export default function ProductDetail() {
                 商品描述 / Product Description
               </h2>
               <div className="space-y-6 text-gray-700 leading-relaxed">
-                <div dangerouslySetInnerHTML={{ __html: product.fullDescription }} />
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
+                  <h3 className="font-semibold text-orange-800 mb-2">
+                    📢 **庫存提醒＆預購通知** 📢
+                  </h3>
+                  <p className="text-orange-700">
+                    親愛的買家您好，由於商品庫存有限，為避免下單後缺貨的情況，建議您 <strong>先私訊賣家詢問庫存狀態</strong>。若商品暫時缺貨，我們也提供 <strong>預購服務</strong>，您可以提前下單，我們會馬上為您備貨！
+                  </p>
+                </div>
+
+                <MdxRenderer mdxContent={product.fullDescription} />
               </div>
             </div>
           </section>

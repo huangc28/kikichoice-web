@@ -3,7 +3,7 @@ import remarkParse from 'remark-parse';
 import remarkMdx from 'remark-mdx';
 import remarkRehype from 'remark-rehype';
 import rehypeReact from 'rehype-react';
-import { createElement } from 'react';
+import production from 'react/jsx-runtime';
 import DosageCard from '@/components/DosageCard';
 
 export async function mdxToReact(source: string) {
@@ -12,7 +12,7 @@ export async function mdxToReact(source: string) {
     .use(remarkMdx)
     .use(remarkRehype)
     .use(rehypeReact, {
-      createElement: createElement as any,
+      ...production,
       components: { DosageCard },
     })
     .process(source);
