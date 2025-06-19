@@ -227,7 +227,7 @@ export default function ProductDetail() {
 
             {/* Thumbnail Images */}
             {product.images.length > 1 && (
-              <div className="flex space-x-2">
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
                 {product.images.map((image, index) => (
                   <button
                     key={index}
