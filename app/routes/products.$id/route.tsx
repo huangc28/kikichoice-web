@@ -153,7 +153,9 @@ export default function ProductDetail() {
   }
 
   const handleAddToCart = () => {
-    for (let i = 0; i < quantity; i++) {
+    // Ensure quantity doesn't exceed stock
+    const validQuantity = Math.min(quantity, product.stockCount);
+    for (let i = 0; i < validQuantity; i++) {
       addItem({
         id: product.uuid,
         name: product.name,
@@ -320,44 +322,67 @@ export default function ProductDetail() {
 
             {/* Add to Cart */}
             <div className="mb-8">
-              <div className="flex items-center space-x-4 mb-4">
-                <span className="text-gray-700">數量 / Quantity:</span>
-                <div className="flex items-center space-x-2">
+              {/* Check if product is out of stock */}
+              {!product.inStock || product.stockCount === 0 ? (
+                // Show sold out message
+                <div className="text-center py-6">
+                  <div className="bg-gray-100 border border-gray-300 rounded-lg p-4 mb-4">
+                    <span className="text-xl font-bold text-gray-600">賣完了</span>
+                    <p className="text-sm text-gray-500 mt-1"> 此商品暫時缺貨 </p>
+                  </div>
                   <Button
                     variant="outline"
-                    size="sm"
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="h-10 w-10 p-0"
+                    className="w-full border-orange-500 text-orange-500 hover:bg-orange-50 rounded-full h-12"
                   >
-                    -
-                  </Button>
-                  <span className="w-12 text-center text-lg font-medium">{quantity}</span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setQuantity(quantity + 1)}
-                    className="h-10 w-10 p-0"
-                  >
-                    +
+                    {t('shop.add_to_wishlist')}
                   </Button>
                 </div>
-              </div>
+              ) : (
+                // Show quantity selection and add to cart for in-stock items
+                <>
+                  <div className="flex items-center space-x-4 mb-4">
+                    <span className="text-gray-700">數量:</span>
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                        className="h-10 w-10 p-0"
+                      >
+                        -
+                      </Button>
+                      <span className="w-12 text-center text-lg font-medium">{quantity}</span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setQuantity(Math.min(product.stockCount, quantity + 1))}
+                        className="h-10 w-10 p-0"
+                        disabled={quantity >= product.stockCount}
+                      >
+                        +
+                      </Button>
+                    </div>
+                    <span className="text-sm text-gray-500">
+                      (最多 {product.stockCount} 件 / Max {product.stockCount} items)
+                    </span>
+                  </div>
 
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Button
-                  onClick={handleAddToCart}
-                  disabled={!product.inStock}
-                  className="flex-1 bg-orange-500 hover:bg-orange-600 text-white rounded-full h-12"
-                >
-                  {t('shop.add_to_cart')}
-                </Button>
-                <Button
-                  variant="outline"
-                  className="flex-1 border-orange-500 text-orange-500 hover:bg-orange-50 rounded-full h-12"
-                >
-                  {t('shop.add_to_wishlist')}
-                </Button>
-              </div>
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <Button
+                      onClick={handleAddToCart}
+                      className="flex-1 bg-orange-500 hover:bg-orange-600 text-white rounded-full h-12"
+                    >
+                      {t('shop.add_to_cart')}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="flex-1 border-orange-500 text-orange-500 hover:bg-orange-50 rounded-full h-12"
+                    >
+                      {t('shop.add_to_wishlist')}
+                    </Button>
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Specifications */}
@@ -386,7 +411,7 @@ export default function ProductDetail() {
           <section className="mt-16">
             <div className="bg-white rounded-lg shadow-sm border p-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                商品描述 / Product Description
+                商品描述
               </h2>
               <div className="space-y-6 text-gray-700 leading-relaxed">
                 <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
