@@ -50,6 +50,8 @@ export const links: LinksFunction = () => [
 ]
 
 export function Layout({ children }: { children: React.ReactNode }) {
+  const data = useLoaderData<typeof loader>();
+  
   return (
     <html lang="en">
       <head>
@@ -61,6 +63,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <body>
         {children}
         <ScrollRestoration />
+        {/* Inject ENV into window object for client-side access */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.ENV = ${JSON.stringify(data.ENV)}`,
+          }}
+        />
         <Scripts />
         <Analytics />
       </body>
@@ -69,20 +77,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  const { ENV } = useLoaderData<typeof loader>();
-
   return (
     <TooltipProvider>
       <WishlistProvider>
         <LanguageProvider>
           <CartProvider>
             <Outlet />
-            {/* Inject ENV into window object for client-side access */}
-            <script
-              dangerouslySetInnerHTML={{
-                __html: `window.ENV = ${JSON.stringify(ENV)}`,
-              }}
-            />
           </CartProvider>
         </LanguageProvider>
       </WishlistProvider>
