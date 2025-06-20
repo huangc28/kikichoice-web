@@ -9,6 +9,7 @@ import { MdxRenderer } from '@/components/MdxRenderer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { tryCatch } from '@/lib/try-catch';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
@@ -164,6 +165,12 @@ export default function ProductDetail() {
         image: product.primaryImage,
       });
     }
+  };
+
+  const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(e.target.value) || 1;
+    const validQuantity = Math.max(1, Math.min(product.stockCount, value));
+    setQuantity(validQuantity);
   };
 
   const nextImage = () => {
@@ -359,7 +366,14 @@ export default function ProductDetail() {
                       >
                         -
                       </Button>
-                      <span className="w-12 text-center text-lg font-medium">{quantity}</span>
+                      <Input
+                        type="number"
+                        value={quantity}
+                        onChange={handleQuantityChange}
+                        className="w-16 h-10 text-center [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
+                        min="1"
+                        max={product.stockCount}
+                      />
                       <Button
                         variant="outline"
                         size="sm"
