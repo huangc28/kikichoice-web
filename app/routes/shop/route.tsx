@@ -6,6 +6,7 @@ import { useCart } from '@/contexts/CartContext';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { ProductCard } from '@/components/ProductCard';
+import { CartDrawer } from '@/components/CartDrawer';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search } from 'lucide-react';
@@ -61,6 +62,10 @@ const Shop = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(category || 'all');
   const [priceRange, setPriceRange] = useState('all');
+  
+  // Cart drawer state
+  const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
+  const [selectedProductForCart, setSelectedProductForCart] = useState<Product | null>(null);
 
   // Ensure products is always an array of Product
   const products = (loaderData.products || []) as Product[];
@@ -103,14 +108,20 @@ const Shop = () => {
   }, [products, selectedCategory, searchTerm, priceRange]);
 
   const handleAddToCart = async (product: Product) => {
-    await addItem(product.uuid, {
+    // Convert Product to the format expected by CartDrawer
+    const productForDrawer = {
+      uuid: product.uuid,
       name: product.name,
       sku: product.sku,
-      quantity: 1,
       price: product.price,
+      originalPrice: product.originalPrice,
       image: product.image,
-      stock: product.inStock ? 999 : 0, // Default high stock for in-stock items
-    });
+      stockCount: product.inStock ? 999 : 0, // Default high stock for in-stock items
+      variants: [], // Products from shop don't have variants loaded
+    };
+
+    setSelectedProductForCart(productForDrawer);
+    setIsCartDrawerOpen(true);
   };
 
   const handleBuyNow = async (product: Product) => {
@@ -123,6 +134,11 @@ const Shop = () => {
       stock: product.inStock ? 999 : 0, // Default high stock for in-stock items
     });
     navigate('/cart');
+  };
+
+  const handleCloseCartDrawer = () => {
+    setIsCartDrawerOpen(false);
+    setSelectedProductForCart(null);
   };
 
   return (
@@ -215,6 +231,13 @@ const Shop = () => {
           </div>
         )}
       </main>
+
+      {/* Cart Drawer */}
+      <CartDrawer
+        isOpen={isCartDrawerOpen}
+        onClose={handleCloseCartDrawer}
+        selectedProduct={selectedProductForCart}
+      />
 
       <Footer />
     </div>

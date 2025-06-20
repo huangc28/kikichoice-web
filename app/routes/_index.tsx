@@ -4,7 +4,8 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useCart } from '@/contexts/CartContext';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
-import { ProductCard, type Product } from '@/components/ProductCard';
+import { ProductCard } from '@/components/ProductCard';
+import { CartDrawer } from '@/components/CartDrawer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -12,10 +13,26 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 import placeholderUrl from '@/assets/placeholder.svg';
 
+// Define Product interface for homepage
+interface Product {
+  uuid: string;
+  name: string;
+  sku: string;
+  slug: string;
+  price: number;
+  originalPrice?: number;
+  image: string;
+  inStock: boolean;
+  description?: string;
+  category?: string;
+}
+
 const featuredProducts: Product[] = [
   {
-    id: '1',
+    uuid: '1',
     name: '高齡犬關節保健膠囊',
+    sku: 'DOG-JOINT-001',
+    slug: 'senior-dog-joint-supplement',
     price: 980,
     originalPrice: 1200,
     image: placeholderUrl,
@@ -23,24 +40,30 @@ const featuredProducts: Product[] = [
     inStock: true,
   },
   {
-    id: '2',
+    uuid: '2',
     name: '軟質寵物床墊',
+    sku: 'PET-BED-001',
+    slug: 'soft-pet-mattress',
     price: 1680,
     image: placeholderUrl,
     category: 'bedding',
     inStock: true,
   },
   {
-    id: '3',
+    uuid: '3',
     name: '易消化高齡貓糧',
+    sku: 'CAT-FOOD-001',
+    slug: 'senior-cat-food',
     price: 650,
     image: placeholderUrl,
     category: 'food',
     inStock: false,
   },
   {
-    id: '4',
+    uuid: '4',
     name: '溫熱墊',
+    sku: 'HEAT-PAD-001',
+    slug: 'heating-pad',
     price: 890,
     image: placeholderUrl,
     category: 'comfort',
@@ -80,14 +103,26 @@ const Index = () => {
   const { addItem } = useCart();
   const [email, setEmail] = useState('');
   const [currentSlide, setCurrentSlide] = useState(0);
+  
+  // Cart drawer state
+  const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
+  const [selectedProductForCart, setSelectedProductForCart] = useState<Product | null>(null);
 
-  const handleAddToCart = (product: typeof featuredProducts[0]) => {
-    addItem({
-      id: product.id,
+  const handleAddToCart = (product: Product) => {
+    // Convert Product to the format expected by CartDrawer
+    const productForDrawer = {
+      uuid: product.uuid,
       name: product.name,
+      sku: product.sku,
       price: product.price,
+      originalPrice: product.originalPrice,
       image: product.image,
-    });
+      stockCount: product.inStock ? 999 : 0, // Default high stock for in-stock items
+      variants: [], // Homepage products don't have variants
+    };
+
+    setSelectedProductForCart(productForDrawer);
+    setIsCartDrawerOpen(true);
   };
 
   const handleNewsletterSubmit = (e: React.FormEvent) => {
@@ -95,6 +130,11 @@ const Index = () => {
     console.log('Newsletter signup:', email);
     setEmail('');
     // Add toast notification here
+  };
+
+  const handleCloseCartDrawer = () => {
+    setIsCartDrawerOpen(false);
+    setSelectedProductForCart(null);
   };
 
   const nextSlide = () => {
@@ -151,9 +191,9 @@ const Index = () => {
                   style={{ transform: `translateX(-${currentSlide * 100}%)` }}
                 >
                   {featuredProducts.map((product) => (
-                    <div key={product.id} className="w-full flex-shrink-0 px-2">
+                    <div key={product.uuid} className="w-full flex-shrink-0 px-2">
                       <ProductCard
-                        key={product.id}
+                        key={product.uuid}
                         product={product}
                         onAddToCart={handleAddToCart}
                         variant="homepage"
@@ -189,7 +229,7 @@ const Index = () => {
             <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-6">
               {featuredProducts.map((product) => (
                 <ProductCard
-                  key={product.id}
+                  key={product.uuid}
                   product={product}
                   onAddToCart={handleAddToCart}
                   variant="homepage"
@@ -257,6 +297,13 @@ const Index = () => {
           </form>
         </div>
       </section>
+
+      {/* Cart Drawer */}
+      <CartDrawer
+        isOpen={isCartDrawerOpen}
+        onClose={handleCloseCartDrawer}
+        selectedProduct={selectedProductForCart}
+      />
 
       <Footer />
     </div>

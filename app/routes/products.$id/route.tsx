@@ -6,6 +6,7 @@ import { useCart } from '@/contexts/CartContext';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { MdxRenderer } from '@/components/MdxRenderer';
+import { CartDrawer } from '@/components/CartDrawer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -124,6 +125,9 @@ export default function ProductDetail() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [selectedVariant, setSelectedVariant] = useState<number | null>(null);
+  
+  // Cart drawer state
+  const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
 
   // Show loading skeleton while navigating
   if (navigation.state === 'loading') {
@@ -156,16 +160,8 @@ export default function ProductDetail() {
   }
 
   const handleAddToCart = () => {
-    // Ensure quantity doesn't exceed stock
-    const validQuantity = Math.min(quantity, product.stockCount);
-    addItem(product.uuid, {
-      name: product.name,
-      sku: product.sku,
-      quantity: validQuantity,
-      price: product.price,
-      image: product.primaryImage,
-      stock: product.stockCount,
-    });
+    // Open cart drawer with product details
+    setIsCartDrawerOpen(true);
   };
 
   const handleBuyNow = () => {
@@ -186,6 +182,10 @@ export default function ProductDetail() {
     const value = parseInt(e.target.value) || 1;
     const validQuantity = Math.max(1, Math.min(product.stockCount, value));
     setQuantity(validQuantity);
+  };
+
+  const handleCloseCartDrawer = () => {
+    setIsCartDrawerOpen(false);
   };
 
   const nextImage = () => {
@@ -468,6 +468,22 @@ export default function ProductDetail() {
           </section>
         )}
       </main>
+
+      {/* Cart Drawer */}
+      <CartDrawer
+        isOpen={isCartDrawerOpen}
+        onClose={handleCloseCartDrawer}
+        selectedProduct={{
+          uuid: product.uuid,
+          name: product.name,
+          sku: product.sku,
+          price: product.price,
+          originalPrice: product.originalPrice,
+          image: product.primaryImage,
+          stockCount: product.stockCount,
+          variants: product.variants,
+        }}
+      />
 
       <Footer />
     </div>
