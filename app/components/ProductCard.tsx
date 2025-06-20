@@ -116,7 +116,7 @@ export const ProductCard = ({
               variant="outline"
               className="w-full border-orange-500 text-orange-500 hover:bg-orange-50 rounded-full"
             >
-              {t('shop.add_to_wishlist')}
+              直接購買
             </Button>
           )}
         </div>

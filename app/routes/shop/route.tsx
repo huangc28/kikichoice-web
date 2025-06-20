@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { useParams, useLoaderData } from '@remix-run/react';
+import { useParams, useLoaderData, useNavigate } from '@remix-run/react';
 import { json, type LoaderFunctionArgs } from '@vercel/remix';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCart } from '@/contexts/CartContext';
@@ -56,6 +56,7 @@ const Shop = () => {
   const { category } = useParams();
   const { t } = useLanguage();
   const { addItem } = useCart();
+  const navigate = useNavigate();
   const loaderData = useLoaderData<typeof loader>();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(category || 'all');
@@ -110,9 +111,14 @@ const Shop = () => {
     });
   };
 
-  const handleAddToWishlist = (product: Product) => {
-    // TODO: Implement wishlist functionality
-    console.log('Added to wishlist:', product.name);
+  const handleBuyNow = (product: Product) => {
+    addItem({
+      id: product.uuid,
+      name: product.name,
+      price: product.price,
+      image: product.image,
+    });
+    navigate('/cart');
   };
 
   return (
@@ -192,7 +198,7 @@ const Shop = () => {
               key={product.uuid}
               product={product}
               onAddToCart={handleAddToCart}
-              onAddToWishlist={handleAddToWishlist}
+              onAddToWishlist={handleBuyNow}
               variant="shop"
             />
           ))}

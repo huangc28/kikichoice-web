@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { json, type LoaderFunctionArgs } from '@remix-run/node';
-import { useLoaderData, Link, useNavigation } from '@remix-run/react';
+import { useLoaderData, Link, useNavigation, useNavigate } from '@remix-run/react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCart } from '@/contexts/CartContext';
 import { Header } from '@/components/Header';
@@ -119,6 +119,7 @@ export default function ProductDetail() {
   const { t } = useLanguage();
   const { addItem } = useCart();
   const navigation = useNavigation();
+  const navigate = useNavigate();
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
@@ -165,6 +166,20 @@ export default function ProductDetail() {
         image: product.primaryImage,
       });
     }
+  };
+
+  const handleBuyNow = () => {
+    // Ensure quantity doesn't exceed stock
+    const validQuantity = Math.min(quantity, product.stockCount);
+    for (let i = 0; i < validQuantity; i++) {
+      addItem({
+        id: product.uuid,
+        name: product.name,
+        price: product.price,
+        image: product.primaryImage,
+      });
+    }
+    navigate('/cart');
   };
 
   const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -348,8 +363,9 @@ export default function ProductDetail() {
                   <Button
                     variant="outline"
                     className="w-full border-orange-500 text-orange-500 hover:bg-orange-50 rounded-full h-12"
+                    onClick={handleBuyNow}
                   >
-                    {t('shop.add_to_wishlist')}
+                    直接購買
                   </Button>
                 </div>
               ) : (
@@ -399,8 +415,9 @@ export default function ProductDetail() {
                     <Button
                       variant="outline"
                       className="flex-1 border-orange-500 text-orange-500 hover:bg-orange-50 rounded-full h-12"
+                      onClick={handleBuyNow}
                     >
-                      {t('shop.add_to_wishlist')}
+                      直接購買
                     </Button>
                   </div>
                 </>
