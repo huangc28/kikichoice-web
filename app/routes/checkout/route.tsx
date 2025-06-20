@@ -11,7 +11,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
 
 const Checkout = () => {
-  const { items, getTotalPrice, clearCart } = useCart();
+  const { items, getTotalPrice, clearCart, isLoading, error } = useCart();
   const [formData, setFormData] = useState({
     email: '',
     firstName: '',
@@ -26,13 +26,16 @@ const Checkout = () => {
     discountCode: '',
   });
 
+  // Convert items object to array for easier iteration
+  const itemsArray = Object.values(items);
+
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Order submitted:', { formData, items, total: getTotalPrice() });
+    console.log('Order submitted:', { formData, items: itemsArray, total: getTotalPrice() });
     // Here you would typically send the order to your backend
     clearCart();
     // Redirect to success page or show confirmation
@@ -41,7 +44,42 @@ const Checkout = () => {
   const shippingCost = formData.shippingMethod === 'home-delivery' ? 60 : 0;
   const totalPrice = getTotalPrice() + shippingCost;
 
-  if (items.length === 0) {
+  // Handle loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <div className="text-center">
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">載入中... / Loading...</h1>
+            <p className="text-gray-600">正在載入購物車資料 / Loading cart data...</p>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  // Handle error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <div className="text-center">
+            <h1 className="text-3xl font-bold text-red-600 mb-4">錯誤 / Error</h1>
+            <p className="text-gray-600 mb-4">{error}</p>
+            <Button onClick={() => window.location.reload()}>
+              重新載入 / Reload
+            </Button>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (itemsArray.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
@@ -241,8 +279,8 @@ const Checkout = () => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {/* Order Items */}
-                  {items.map((item) => (
-                    <div key={item.id} className="flex items-center space-x-3">
+                  {itemsArray.map((item) => (
+                    <div key={item.uuid} className="flex items-center space-x-3">
                       <img
                         src={item.image}
                         alt={item.name}
