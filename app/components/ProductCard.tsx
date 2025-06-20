@@ -85,6 +85,11 @@ export const ProductCard = ({
             {product.description}
           </p>
         )}
+        {
+          !product.description && (
+            <div className="h-[40px] mb-[10px]"></div>
+          )
+        }
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center space-x-2">
             <span className={`text-lg font-bold ${priceColorClass}`}>

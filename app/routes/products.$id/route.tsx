@@ -121,6 +121,7 @@ export default function ProductDetail() {
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
+  const [selectedVariant, setSelectedVariant] = useState<number | null>(null);
 
   // Show loading skeleton while navigating
   if (navigation.state === 'loading') {
@@ -285,11 +286,19 @@ export default function ProductDetail() {
             {product.variants.length > 0 && (
               <div className="mb-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                  商品規格 / Product Variants
+                  商品規格
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {product.variants.map((variant, index) => (
-                    <div key={index} className="border rounded-lg p-3 hover:border-orange-300 transition-colors">
+                    <div
+                      key={index}
+                      onClick={() => setSelectedVariant(index)}
+                      className={`border rounded-lg p-3 transition-all duration-200 cursor-pointer ${
+                        selectedVariant === index
+                          ? 'border-orange-500 bg-orange-50 shadow-md'
+                          : 'border-gray-200 hover:border-orange-300 hover:bg-orange-25'
+                      }`}
+                    >
                       <div className="flex items-center space-x-3">
                         <img
                           src={variant.image_url}
@@ -300,7 +309,6 @@ export default function ProductDetail() {
                           <h4 className="font-medium text-gray-900 text-sm">
                             {variant.name}
                           </h4>
-                          <p className="text-xs text-gray-500">SKU: {variant.sku}</p>
                           <div className="flex justify-between items-center mt-1">
                             <p className="text-sm font-bold text-orange-600">
                               NT$ {variant.price.toLocaleString()}
