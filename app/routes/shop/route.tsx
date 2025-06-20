@@ -109,6 +109,7 @@ const Shop = () => {
       quantity: 1,
       price: product.price,
       image: product.image,
+      stock: product.inStock ? 999 : 0, // Default high stock for in-stock items
     });
   };
 
@@ -119,6 +120,7 @@ const Shop = () => {
       quantity: 1,
       price: product.price,
       image: product.image,
+      stock: product.inStock ? 999 : 0, // Default high stock for in-stock items
     });
     navigate('/cart');
   };

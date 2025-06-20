@@ -164,6 +164,7 @@ export default function ProductDetail() {
       quantity: validQuantity,
       price: product.price,
       image: product.primaryImage,
+      stock: product.stockCount,
     });
   };
 
@@ -176,6 +177,7 @@ export default function ProductDetail() {
       quantity: validQuantity,
       price: product.price,
       image: product.primaryImage,
+      stock: product.stockCount,
     });
     navigate('/cart');
   };

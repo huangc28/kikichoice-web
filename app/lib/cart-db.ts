@@ -5,6 +5,7 @@ interface CartItem {
   quantity: number;
   price: number;
   image: string;
+  stock: number;
   dateAdded: Date;
 }
 

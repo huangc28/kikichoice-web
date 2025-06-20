@@ -69,8 +69,14 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updateQuantity = async (productUuid: string, quantity: number) => {
     try {
-      await cartDB.updateQuantity(productUuid, quantity);
-      if (quantity <= 0) {
+      const item = items[productUuid];
+      if (!item) return;
+
+      // Ensure quantity is within valid bounds: min 1, max stock
+      const validQuantity = Math.max(1, Math.min(quantity, item.stock));
+
+      await cartDB.updateQuantity(productUuid, validQuantity);
+      if (validQuantity <= 0) {
         setItems(prev => {
           const newItems = { ...prev };
           delete newItems[productUuid];
@@ -81,7 +87,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           ...prev,
           [productUuid]: {
             ...prev[productUuid],
-            quantity
+            quantity: validQuantity
           }
         }));
       }

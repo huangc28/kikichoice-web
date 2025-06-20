@@ -93,6 +93,9 @@ const Cart = () => {
                       <p className="text-sm text-gray-600 mb-2">
                         {t('cart.quantity')}: {item.quantity}
                       </p>
+                      <p className="text-xs text-gray-500 mb-2">
+                        庫存: {item.stock} 件
+                      </p>
                       <p className="text-lg font-bold text-orange-600 mb-3">
                         NT$ {(item.price * item.quantity).toLocaleString()}
                       </p>
@@ -102,6 +105,7 @@ const Cart = () => {
                           size="sm"
                           onClick={() => updateQuantity(productUuid, item.quantity - 1)}
                           className="h-8 w-8 p-0"
+                          disabled={item.quantity <= 1}
                         >
                           -
                         </Button>
@@ -111,12 +115,14 @@ const Cart = () => {
                           onChange={(e) => updateQuantity(productUuid, parseInt(e.target.value) || 1)}
                           className="w-16 h-8 text-center"
                           min="1"
+                          max={item.stock}
                         />
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => updateQuantity(productUuid, item.quantity + 1)}
                           className="h-8 w-8 p-0"
+                          disabled={item.quantity >= item.stock}
                         >
                           +
                         </Button>
