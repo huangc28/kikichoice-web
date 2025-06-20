@@ -15,6 +15,7 @@ export interface ApiProductSpec {
 export interface ApiProductVariant {
   name: string;
   sku: string;
+  uuid: string;
   stock_count: number;
   image_url: string;
   price: number;

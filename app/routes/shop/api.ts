@@ -37,6 +37,7 @@ export interface Product {
   price: number;
   originalPrice?: number;
   image: string;
+  stockCount: number;
   inStock: boolean;
   description?: string;
   category?: string;
@@ -52,6 +53,7 @@ export function transformApiProduct(apiProduct: ApiProduct): Product {
     price: apiProduct.price,
     originalPrice: apiProduct.original_price || undefined,
     image: apiProduct.primary_image_url,
+    stockCount: apiProduct.stock_count,
     inStock: apiProduct.stock_count > 0,
     description: apiProduct.short_desc || undefined,
     category: apiProduct.category || undefined,

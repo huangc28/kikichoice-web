@@ -11,8 +11,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { tryCatch } from '@/lib/try-catch';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react';
 
 import { fetchProductDetail } from './api/fetch-prod-detail.js';
 import { fetchGithubMdx } from './api/fetch-prod-desc.js';
@@ -125,7 +126,8 @@ export default function ProductDetail() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [selectedVariant, setSelectedVariant] = useState<number | null>(null);
-  
+  const [showVariantAlert, setShowVariantAlert] = useState(false);
+
   // Cart drawer state
   const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
 
@@ -159,28 +161,87 @@ export default function ProductDetail() {
     );
   }
 
-  const handleAddToCart = () => {
-    // Open cart drawer with product details
-    setIsCartDrawerOpen(true);
+  const validateVariantSelection = () => {
+    if (product.variants.length > 0 && selectedVariant === null) {
+      setShowVariantAlert(true);
+      setTimeout(() => setShowVariantAlert(false), 5000); // Hide after 5 seconds
+      return false;
+    }
+    return true;
   };
 
-  const handleBuyNow = () => {
-    // Ensure quantity doesn't exceed stock
-    const validQuantity = Math.min(quantity, product.stockCount);
-    addItem(product.uuid, {
+  const getSelectedVariant = () => {
+    if (selectedVariant !== null && product.variants[selectedVariant]) {
+      return product.variants[selectedVariant];
+    }
+    return null;
+  };
+
+  const getCurrentProductData = () => {
+    const variant = getSelectedVariant();
+    if (variant) {
+      return {
+        uuid: variant.uuid || product.uuid, // Use variant UUID if available, fallback to product UUID
+        name: `${product.name} - ${variant.name}`, // Combine parent and variant names
+        sku: variant.sku || variant.name, // Use variant SKU if available, fallback to variant name
+        price: variant.price,
+        image: variant.image_url,
+        stock: variant.stock_count,
+      };
+    }
+
+    // Return parent product data when no variants or variant not selected
+    return {
+      uuid: product.uuid,
       name: product.name,
       sku: product.sku,
-      quantity: validQuantity,
       price: product.price,
       image: product.primaryImage,
       stock: product.stockCount,
+    };
+  };
+
+  const handleAddToCart = () => {
+    if (!validateVariantSelection()) {
+      return;
+    }
+
+    const currentProduct = getCurrentProductData();
+    const validQuantity = Math.min(quantity, currentProduct.stock);
+
+    addItem(currentProduct.uuid, {
+      name: currentProduct.name,
+      sku: currentProduct.sku,
+      quantity: validQuantity,
+      price: currentProduct.price,
+      image: currentProduct.image,
+      stock: currentProduct.stock,
+    });
+  };
+
+  const handleBuyNow = () => {
+    if (!validateVariantSelection()) {
+      return;
+    }
+
+    const currentProduct = getCurrentProductData();
+    const validQuantity = Math.min(quantity, currentProduct.stock);
+
+    addItem(currentProduct.uuid, {
+      name: currentProduct.name,
+      sku: currentProduct.sku,
+      quantity: validQuantity,
+      price: currentProduct.price,
+      image: currentProduct.image,
+      stock: currentProduct.stock,
     });
     navigate('/cart');
   };
 
   const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value) || 1;
-    const validQuantity = Math.max(1, Math.min(product.stockCount, value));
+    const currentProduct = getCurrentProductData();
+    const validQuantity = Math.max(1, Math.min(currentProduct.stock, value));
     setQuantity(validQuantity);
   };
 
@@ -279,7 +340,7 @@ export default function ProductDetail() {
               <div className="flex items-center space-x-4 mb-4">
                 <div className="flex items-center space-x-2">
                   <span className="text-3xl font-bold text-orange-600">
-                    NT$ {product.price.toLocaleString()}
+                    NT$ {getCurrentProductData().price.toLocaleString()}
                   </span>
                   {product.originalPrice && (
                     <span className="text-lg text-gray-500 line-through">
@@ -287,9 +348,9 @@ export default function ProductDetail() {
                     </span>
                   )}
                 </div>
-                {product.inStock ? (
+                {getCurrentProductData().stock > 0 ? (
                   <Badge variant="default" className="bg-green-500">
-                    {t('shop.in_stock')} ({product.stockCount})
+                    {t('shop.in_stock')} ({getCurrentProductData().stock})
                   </Badge>
                 ) : (
                   <Badge variant="secondary">
@@ -314,7 +375,11 @@ export default function ProductDetail() {
                   {product.variants.map((variant, index) => (
                     <div
                       key={index}
-                      onClick={() => setSelectedVariant(index)}
+                      onClick={() => {
+                        setSelectedVariant(index);
+                        setShowVariantAlert(false); // Hide alert when variant is selected
+                        setQuantity(1); // Reset quantity when variant changes
+                      }}
                       className={`border rounded-lg p-3 transition-all duration-200 cursor-pointer ${
                         selectedVariant === index
                           ? 'border-orange-500 bg-orange-50 shadow-md'
@@ -350,10 +415,20 @@ export default function ProductDetail() {
               </div>
             )}
 
+            {/* Variant Selection Alert */}
+            {showVariantAlert && (
+              <Alert className="mb-4 border-orange-200 bg-orange-50">
+                <AlertCircle className="h-4 w-4 text-orange-600" />
+                <AlertDescription className="text-orange-800">
+                  請先選擇商品規格再加入購物車
+                </AlertDescription>
+              </Alert>
+            )}
+
             {/* Add to Cart */}
             <div className="mb-8">
               {/* Check if product is out of stock */}
-              {!product.inStock || product.stockCount === 0 ? (
+              {getCurrentProductData().stock === 0 ? (
                 // Show sold out message
                 <div className="text-center py-6">
                   <div className="bg-gray-100 border border-gray-300 rounded-lg p-4 mb-4">
@@ -388,20 +463,23 @@ export default function ProductDetail() {
                         onChange={handleQuantityChange}
                         className="w-16 h-10 text-center [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
                         min="1"
-                        max={product.stockCount}
+                        max={getCurrentProductData().stock}
                       />
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => setQuantity(Math.min(product.stockCount, quantity + 1))}
+                        onClick={() => {
+                          const currentProduct = getCurrentProductData();
+                          setQuantity(Math.min(currentProduct.stock, quantity + 1));
+                        }}
                         className="h-10 w-10 p-0"
-                        disabled={quantity >= product.stockCount}
+                        disabled={quantity >= getCurrentProductData().stock}
                       >
                         +
                       </Button>
                     </div>
                     <span className="text-sm text-gray-500">
-                      (最多 {product.stockCount} 件)
+                      (最多 {getCurrentProductData().stock} 件)
                     </span>
                   </div>
 
@@ -474,13 +552,13 @@ export default function ProductDetail() {
         isOpen={isCartDrawerOpen}
         onClose={handleCloseCartDrawer}
         selectedProduct={{
-          uuid: product.uuid,
-          name: product.name,
-          sku: product.sku,
-          price: product.price,
+          uuid: getCurrentProductData().uuid,
+          name: getCurrentProductData().name,
+          sku: getCurrentProductData().sku,
+          price: getCurrentProductData().price,
           originalPrice: product.originalPrice,
-          image: product.primaryImage,
-          stockCount: product.stockCount,
+          image: getCurrentProductData().image,
+          stockCount: getCurrentProductData().stock,
           variants: product.variants,
         }}
       />

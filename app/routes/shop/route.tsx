@@ -1,8 +1,7 @@
 import { useState, useMemo } from 'react';
-import { useParams, useLoaderData, useNavigate } from '@remix-run/react';
+import { useParams, useLoaderData } from '@remix-run/react';
 import { json, type LoaderFunctionArgs } from '@vercel/remix';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useCart } from '@/contexts/CartContext';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { ProductCard } from '@/components/ProductCard';
@@ -12,7 +11,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Search } from 'lucide-react';
 import { fetchProducts, type Product } from './api';
 
-// Remix Loader - Fetch products from API
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   try {
     const products = await fetchProducts();
@@ -56,13 +54,11 @@ const getCategories = (products: Product[]) => {
 const Shop = () => {
   const { category } = useParams();
   const { t } = useLanguage();
-  const { addItem } = useCart();
-  const navigate = useNavigate();
   const loaderData = useLoaderData<typeof loader>();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(category || 'all');
   const [priceRange, setPriceRange] = useState('all');
-  
+
   // Cart drawer state
   const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
   const [selectedProductForCart, setSelectedProductForCart] = useState<Product | null>(null);
@@ -116,24 +112,14 @@ const Shop = () => {
       price: product.price,
       originalPrice: product.originalPrice,
       image: product.image,
-      stockCount: product.inStock ? 999 : 0, // Default high stock for in-stock items
+      stockCount: product.stockCount,
       variants: [], // Products from shop don't have variants loaded
+      slug: product.slug,
+      inStock: product.inStock,
     };
 
     setSelectedProductForCart(productForDrawer);
     setIsCartDrawerOpen(true);
-  };
-
-  const handleBuyNow = async (product: Product) => {
-    await addItem(product.uuid, {
-      name: product.name,
-      sku: product.sku,
-      quantity: 1,
-      price: product.price,
-      image: product.image,
-      stock: product.inStock ? 999 : 0, // Default high stock for in-stock items
-    });
-    navigate('/cart');
   };
 
   const handleCloseCartDrawer = () => {
@@ -218,7 +204,6 @@ const Shop = () => {
               key={product.uuid}
               product={product}
               onAddToCart={handleAddToCart}
-              onAddToWishlist={handleBuyNow}
               variant="shop"
             />
           ))}

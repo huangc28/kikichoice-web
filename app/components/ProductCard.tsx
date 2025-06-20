@@ -53,13 +53,13 @@ export const ProductCard = ({
   const productUrl = `/products/${product.slug}-${product.uuid}`;
 
   return (
-    <Card className={`overflow-hidden hover:shadow-lg transition-shadow ${borderClass} ${className}`}>
+    <Card className={`overflow-hidden hover:shadow-lg transition-shadow cursor-pointer ${borderClass} ${className}`}>
       <div className={`aspect-square ${backgroundClass} relative`}>
-        <Link to={productUrl}>
+        <Link to={productUrl} className="cursor-pointer">
           <img
             src={imageSource}
             alt={product.name}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover hover:opacity-95 transition-opacity"
             onError={handleImageError}
           />
         </Link>
@@ -75,8 +75,8 @@ export const ProductCard = ({
         )}
       </div>
       <CardContent className="p-4">
-        <Link to={productUrl}>
-          <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">
+        <Link to={productUrl} className="cursor-pointer">
+          <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 hover:text-gray-700 transition-colors">
             {product.name}
           </h3>
         </Link>
