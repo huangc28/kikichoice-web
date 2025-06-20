@@ -1,69 +1,114 @@
-
-import React, { createContext, useContext, useState } from 'react';
-
-interface CartItem {
-  id: string;
-  name: string;
-  price: number;
-  quantity: number;
-  image: string;
-}
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { cartDB, type CartItem, type CartData } from '@/lib/cart-db';
 
 interface CartContextType {
-  items: CartItem[];
-  addItem: (item: Omit<CartItem, 'quantity'>) => void;
-  removeItem: (id: string) => void;
-  updateQuantity: (id: string, quantity: number) => void;
-  clearCart: () => void;
+  items: CartData;
+  addItem: (productUuid: string, item: Omit<CartItem, 'uuid' | 'dateAdded'>) => Promise<void>;
+  removeItem: (productUuid: string) => Promise<void>;
+  updateQuantity: (productUuid: string, quantity: number) => Promise<void>;
+  clearCart: () => Promise<void>;
   getTotalPrice: () => number;
   getTotalItems: () => number;
+  isLoading: boolean;
+  error: string | null;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [items, setItems] = useState<CartItem[]>([]);
+  const [items, setItems] = useState<CartData>({});
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const addItem = (newItem: Omit<CartItem, 'quantity'>) => {
-    setItems(prev => {
-      const existing = prev.find(item => item.id === newItem.id);
-      if (existing) {
-        return prev.map(item =>
-          item.id === newItem.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        );
+  // Load cart from IndexedDB on mount
+  useEffect(() => {
+    const loadCart = async () => {
+      try {
+        setIsLoading(true);
+        const cartData = await cartDB.getAllItems();
+        setItems(cartData);
+        setError(null);
+      } catch (err) {
+        console.error('Failed to load cart from IndexedDB:', err);
+        setError('Failed to load cart data');
+      } finally {
+        setIsLoading(false);
       }
-      return [...prev, { ...newItem, quantity: 1 }];
-    });
-  };
+    };
 
-  const removeItem = (id: string) => {
-    setItems(prev => prev.filter(item => item.id !== id));
-  };
+    loadCart();
+  }, []);
 
-  const updateQuantity = (id: string, quantity: number) => {
-    if (quantity <= 0) {
-      removeItem(id);
-      return;
+  const addItem = async (productUuid: string, newItem: Omit<CartItem, 'uuid' | 'dateAdded'>) => {
+    try {
+      await cartDB.addItem(productUuid, newItem);
+      // Refresh items from DB to get updated state
+      const updatedItems = await cartDB.getAllItems();
+      setItems(updatedItems);
+      setError(null);
+    } catch (err) {
+      console.error('Failed to add item to cart:', err);
+      setError('Failed to add item to cart');
     }
-    setItems(prev =>
-      prev.map(item =>
-        item.id === id ? { ...item, quantity } : item
-      )
-    );
   };
 
-  const clearCart = () => {
-    setItems([]);
+  const removeItem = async (productUuid: string) => {
+    try {
+      await cartDB.removeItem(productUuid);
+      setItems(prev => {
+        const newItems = { ...prev };
+        delete newItems[productUuid];
+        return newItems;
+      });
+      setError(null);
+    } catch (err) {
+      console.error('Failed to remove item from cart:', err);
+      setError('Failed to remove item from cart');
+    }
+  };
+
+  const updateQuantity = async (productUuid: string, quantity: number) => {
+    try {
+      await cartDB.updateQuantity(productUuid, quantity);
+      if (quantity <= 0) {
+        setItems(prev => {
+          const newItems = { ...prev };
+          delete newItems[productUuid];
+          return newItems;
+        });
+      } else {
+        setItems(prev => ({
+          ...prev,
+          [productUuid]: {
+            ...prev[productUuid],
+            quantity
+          }
+        }));
+      }
+      setError(null);
+    } catch (err) {
+      console.error('Failed to update quantity:', err);
+      setError('Failed to update quantity');
+    }
+  };
+
+  const clearCart = async () => {
+    try {
+      await cartDB.clearCart();
+      setItems({});
+      setError(null);
+    } catch (err) {
+      console.error('Failed to clear cart:', err);
+      setError('Failed to clear cart');
+    }
   };
 
   const getTotalPrice = () => {
-    return items.reduce((total, item) => total + (item.price * item.quantity), 0);
+    return Object.values(items).reduce((total, item) => total + (item.price * item.quantity), 0);
   };
 
   const getTotalItems = () => {
-    return items.reduce((total, item) => total + item.quantity, 0);
+    return Object.keys(items).length; // Count unique products
   };
 
   return (
@@ -75,6 +120,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       clearCart,
       getTotalPrice,
       getTotalItems,
+      isLoading,
+      error,
     }}>
       {children}
     </CartContext.Provider>

@@ -158,27 +158,25 @@ export default function ProductDetail() {
   const handleAddToCart = () => {
     // Ensure quantity doesn't exceed stock
     const validQuantity = Math.min(quantity, product.stockCount);
-    for (let i = 0; i < validQuantity; i++) {
-      addItem({
-        id: product.uuid,
-        name: product.name,
-        price: product.price,
-        image: product.primaryImage,
-      });
-    }
+    addItem(product.uuid, {
+      name: product.name,
+      sku: product.sku,
+      quantity: validQuantity,
+      price: product.price,
+      image: product.primaryImage,
+    });
   };
 
   const handleBuyNow = () => {
     // Ensure quantity doesn't exceed stock
     const validQuantity = Math.min(quantity, product.stockCount);
-    for (let i = 0; i < validQuantity; i++) {
-      addItem({
-        id: product.uuid,
-        name: product.name,
-        price: product.price,
-        image: product.primaryImage,
-      });
-    }
+    addItem(product.uuid, {
+      name: product.name,
+      sku: product.sku,
+      quantity: validQuantity,
+      price: product.price,
+      image: product.primaryImage,
+    });
     navigate('/cart');
   };
 

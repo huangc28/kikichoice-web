@@ -6,13 +6,28 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
-import { Link } from 'react-router-dom';
+import { Link } from '@remix-run/react';
 
 const Cart = () => {
   const { t } = useLanguage();
-  const { items, removeItem, updateQuantity, getTotalPrice, clearCart } = useCart();
+  const { items, removeItem, updateQuantity, getTotalPrice, clearCart, isLoading, error } = useCart();
 
-  if (items.length === 0) {
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading cart...</p>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (Object.keys(items).length === 0) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
@@ -43,11 +58,27 @@ const Cart = () => {
           {t('cart.title')}
         </h1>
 
+        {/* Error Banner */}
+        {error && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4 mb-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-yellow-800">{error}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Cart Items */}
           <div className="lg:col-span-2 space-y-4">
-            {items.map((item) => (
-              <Card key={item.id} className="overflow-hidden">
+            {Object.entries(items).map(([productUuid, item]) => (
+              <Card key={productUuid} className="overflow-hidden">
                 <CardContent className="p-4">
                   <div className="flex items-start space-x-4">
                     <img
@@ -68,7 +99,7 @@ const Cart = () => {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                            onClick={() => updateQuantity(productUuid, item.quantity - 1)}
                             className="h-8 w-8 p-0"
                           >
                             -
@@ -76,14 +107,14 @@ const Cart = () => {
                           <Input
                             type="number"
                             value={item.quantity}
-                            onChange={(e) => updateQuantity(item.id, parseInt(e.target.value) || 1)}
+                            onChange={(e) => updateQuantity(productUuid, parseInt(e.target.value) || 1)}
                             className="w-16 h-8 text-center"
                             min="1"
                           />
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            onClick={() => updateQuantity(productUuid, item.quantity + 1)}
                             className="h-8 w-8 p-0"
                           >
                             +
@@ -98,7 +129,7 @@ const Cart = () => {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => removeItem(item.id)}
+                        onClick={() => removeItem(productUuid)}
                         className="text-red-600 hover:text-red-700 hover:bg-red-50"
                       >
                         移除

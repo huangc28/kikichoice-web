@@ -102,17 +102,18 @@ const Shop = () => {
     return filtered;
   }, [products, selectedCategory, searchTerm, priceRange]);
 
-  const handleAddToCart = (product: Product) => {
-    addItem({
-      id: product.uuid,
+  const handleAddToCart = async (product: Product) => {
+    await addItem(product.uuid, {
       name: product.name,
+      sku: product.sku,
+      quantity: 1,
       price: product.price,
       image: product.image,
     });
   };
 
-  const handleBuyNow = (product: Product) => {
-    addItem({
+  const handleBuyNow = async (product: Product) => {
+    await addItem({
       id: product.uuid,
       name: product.name,
       price: product.price,
