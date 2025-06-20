@@ -113,9 +113,10 @@ const Shop = () => {
   };
 
   const handleBuyNow = async (product: Product) => {
-    await addItem({
-      id: product.uuid,
+    await addItem(product.uuid, {
       name: product.name,
+      sku: product.sku,
+      quantity: 1,
       price: product.price,
       image: product.image,
     });

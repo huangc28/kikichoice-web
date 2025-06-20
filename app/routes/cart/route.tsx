@@ -90,50 +90,45 @@ const Cart = () => {
                       <h3 className="font-semibold text-gray-900 mb-2">
                         {item.name}
                       </h3>
-                      <p className="text-lg font-bold text-orange-600 mb-2">
-                        NT$ {item.price.toLocaleString()}
+                      <p className="text-sm text-gray-600 mb-2">
+                        {t('cart.quantity')}: {item.quantity}
                       </p>
-                      <div className="flex items-center space-x-2">
-                        <span className="text-sm text-gray-600">{t('cart.quantity')}:</span>
-                        <div className="flex items-center space-x-1">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => updateQuantity(productUuid, item.quantity - 1)}
-                            className="h-8 w-8 p-0"
-                          >
-                            -
-                          </Button>
-                          <Input
-                            type="number"
-                            value={item.quantity}
-                            onChange={(e) => updateQuantity(productUuid, parseInt(e.target.value) || 1)}
-                            className="w-16 h-8 text-center"
-                            min="1"
-                          />
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => updateQuantity(productUuid, item.quantity + 1)}
-                            className="h-8 w-8 p-0"
-                          >
-                            +
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-gray-900 mb-2">
+                      <p className="text-lg font-bold text-orange-600 mb-3">
                         NT$ {(item.price * item.quantity).toLocaleString()}
                       </p>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => removeItem(productUuid)}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                      >
-                        移除
-                      </Button>
+                      <div className="flex items-center space-x-1">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => updateQuantity(productUuid, item.quantity - 1)}
+                          className="h-8 w-8 p-0"
+                        >
+                          -
+                        </Button>
+                        <Input
+                          type="number"
+                          value={item.quantity}
+                          onChange={(e) => updateQuantity(productUuid, parseInt(e.target.value) || 1)}
+                          className="w-16 h-8 text-center"
+                          min="1"
+                        />
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => updateQuantity(productUuid, item.quantity + 1)}
+                          className="h-8 w-8 p-0"
+                        >
+                          +
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => removeItem(productUuid)}
+                          className="ml-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          移除
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
