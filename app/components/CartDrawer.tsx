@@ -176,9 +176,21 @@ export function CartDrawer({ isOpen, onClose, selectedProduct }: CartDrawerProps
                         <div className="flex-shrink-0">
                           <X className="h-5 w-5 text-red-400" />
                         </div>
-                        <div className="ml-3">
+                        <div className="ml-3 flex-1">
                           <p className="text-sm text-red-800">{variantsError}</p>
                         </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            if (selectedProduct?.uuid) {
+                              variantsFetcher.load(`/api/products/${selectedProduct.uuid}/variants`);
+                            }
+                          }}
+                          className="ml-2 text-xs px-2 py-1 h-auto"
+                        >
+                          重試
+                        </Button>
                       </div>
                     </div>
                   )}
@@ -234,48 +246,55 @@ export function CartDrawer({ isOpen, onClose, selectedProduct }: CartDrawerProps
               )}
 
               {/* Quantity Selection */}
-              <div>
-                <h4 className="font-medium text-gray-900 mb-3">數量</h4>
-                <div className="flex items-center space-x-3">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleQuantityChange(quantity - 1)}
-                    disabled={quantity <= 1}
-                    className="h-10 w-10 p-0"
-                  >
-                    <Minus className="h-4 w-4" />
-                  </Button>
-                  <Input
-                    type="number"
-                    value={quantity}
-                    onChange={(e) => handleQuantityChange(parseInt(e.target.value) || 1)}
-                    className="w-20 h-10 text-center [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
-                    min="1"
-                    max={getCurrentStock()}
-                  />
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleQuantityChange(quantity + 1)}
-                    disabled={quantity >= getCurrentStock()}
-                    className="h-10 w-10 p-0"
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                  <span className="text-sm text-gray-500">
-                    (最多 {getCurrentStock()} 件)
-                  </span>
+              {!isLoadingVariants && (
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-3">數量</h4>
+                  <div className="flex items-center space-x-3">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleQuantityChange(quantity - 1)}
+                      disabled={quantity <= 1 || (selectedProduct.hasVariant && !!variantsError)}
+                      className="h-10 w-10 p-0"
+                    >
+                      <Minus className="h-4 w-4" />
+                    </Button>
+                    <Input
+                      type="number"
+                      value={quantity}
+                      onChange={(e) => handleQuantityChange(parseInt(e.target.value) || 1)}
+                      disabled={selectedProduct.hasVariant && !!variantsError}
+                      className="w-20 h-10 text-center [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
+                      min="1"
+                      max={getCurrentStock()}
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleQuantityChange(quantity + 1)}
+                      disabled={quantity >= getCurrentStock() || (selectedProduct.hasVariant && !!variantsError)}
+                      className="h-10 w-10 p-0"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                    <span className="text-sm text-gray-500">
+                      (最多 {getCurrentStock()} 件)
+                    </span>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Add to Cart Button */}
               <Button
                 onClick={handleAddToCart}
-                disabled={getCurrentStock() === 0 || (selectedProduct.hasVariant && variants.length > 0 && selectedVariant === null)}
+                disabled={getCurrentStock() === 0 || (selectedProduct.hasVariant && variants.length > 0 && selectedVariant === null) || isLoadingVariants || (selectedProduct.hasVariant && !!variantsError)}
                 className="w-full bg-orange-500 hover:bg-orange-600 text-white rounded-full h-12"
               >
-                {selectedProduct.hasVariant && variants.length > 0 && selectedVariant === null
+                {isLoadingVariants
+                  ? '載入中...'
+                  : selectedProduct.hasVariant && variantsError
+                  ? '規格載入失敗'
+                  : selectedProduct.hasVariant && variants.length > 0 && selectedVariant === null
                   ? '請選擇規格'
                   : `加入購物車 - NT$ ${(getCurrentPrice() * quantity).toLocaleString()}`}
               </Button>
