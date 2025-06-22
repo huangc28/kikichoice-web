@@ -9,7 +9,7 @@ import { CartDrawer } from '@/components/CartDrawer';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search } from 'lucide-react';
-import { fetchProducts, type Product } from './api';
+import { fetchProducts, type Product } from './api.server.js';
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   try {
@@ -65,6 +65,7 @@ const Shop = () => {
 
   // Ensure products is always an array of Product
   const products = (loaderData.products || []) as Product[];
+  console.log('* 11', products);
   const error = loaderData.error;
 
   const categories = useMemo(() => getCategories(products), [products]);
@@ -113,7 +114,7 @@ const Shop = () => {
       originalPrice: product.originalPrice,
       image: product.image,
       stockCount: product.stockCount,
-      variants: [], // Products from shop don't have variants loaded
+      hasVariant: product.hasVariant,
       slug: product.slug,
       inStock: product.inStock,
     };

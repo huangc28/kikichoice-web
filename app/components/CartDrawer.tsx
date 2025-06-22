@@ -1,10 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useCart } from '@/contexts/CartContext';
-import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import {
   Sheet,
   SheetContent,
@@ -12,8 +10,9 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
-import { Link } from '@remix-run/react';
-import { Minus, Plus, X, ShoppingBag } from 'lucide-react';
+import { Link, useFetcher } from '@remix-run/react';
+import { Minus, Plus, X, ShoppingBag, Loader2 } from 'lucide-react';
+import { type ProductVariant } from '@/routes/shop/api.server';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -26,23 +25,36 @@ interface CartDrawerProps {
     originalPrice?: number;
     image: string;
     stockCount: number;
-    variants?: Array<{
-      name: string;
-      sku: string;
-      stock_count: number;
-      image_url: string;
-      price: number;
-    }>;
+    hasVariant: boolean;
+    slug?: string;
+    inStock?: boolean;
   } | null;
 }
 
 export function CartDrawer({ isOpen, onClose, selectedProduct }: CartDrawerProps) {
-  const { items, addItem, removeItem, updateQuantity, getTotalPrice, getTotalItems } = useCart();
-  const { t } = useLanguage();
-  
+  const { items, addItem, removeItem, getTotalPrice, getTotalItems } = useCart();
+
+  // Use Remix fetcher for variants
+  const variantsFetcher = useFetcher<{
+    variants: ProductVariant[],
+    error: string | null
+  }>();
+
   // State for product selection
   const [selectedVariant, setSelectedVariant] = useState<number | null>(null);
   const [quantity, setQuantity] = useState(1);
+
+  // Fetch variants when selectedProduct changes and has variants
+  useEffect(() => {
+    if (selectedProduct?.hasVariant && selectedProduct.uuid) {
+      variantsFetcher.load(`/api/products/${selectedProduct.uuid}/variants`);
+    }
+  }, [selectedProduct?.uuid, selectedProduct?.hasVariant]);
+
+  // Derived state from fetcher
+  const isLoadingVariants = variantsFetcher.state === 'loading';
+  const variants = variantsFetcher.data?.variants || [];
+  const variantsError = variantsFetcher.data?.error || null;
 
   // Reset state when drawer opens with new product
   useEffect(() => {
@@ -55,7 +67,12 @@ export function CartDrawer({ isOpen, onClose, selectedProduct }: CartDrawerProps
   const handleAddToCart = async () => {
     if (!selectedProduct) return;
 
-    const variant = selectedProduct.variants?.[selectedVariant || 0];
+    // If product has variants but none is selected, return early
+    if (selectedProduct.hasVariant && variants.length > 0 && selectedVariant === null) {
+      return;
+    }
+
+    const variant = variants.length > 0 ? variants[selectedVariant || 0] : null;
     const productToAdd = {
       name: selectedProduct.name,
       sku: variant?.sku || selectedProduct.sku,
@@ -66,26 +83,34 @@ export function CartDrawer({ isOpen, onClose, selectedProduct }: CartDrawerProps
     };
 
     await addItem(selectedProduct.uuid, productToAdd);
-    
+
     // Reset form after adding
     setSelectedVariant(null);
     setQuantity(1);
   };
 
   const handleQuantityChange = (newQuantity: number) => {
-    const maxStock = selectedProduct?.variants?.[selectedVariant || 0]?.stock_count || selectedProduct?.stockCount || 0;
+    const maxStock = variants.length > 0
+      ? variants[selectedVariant || 0]?.stock_count || 0
+      : selectedProduct?.stockCount || 0;
     const validQuantity = Math.max(1, Math.min(newQuantity, maxStock));
     setQuantity(validQuantity);
   };
 
   const getCurrentStock = () => {
     if (!selectedProduct) return 0;
-    return selectedProduct.variants?.[selectedVariant || 0]?.stock_count || selectedProduct.stockCount;
+    if (variants.length > 0) {
+      return variants[selectedVariant || 0]?.stock_count || 0;
+    }
+    return selectedProduct.stockCount;
   };
 
   const getCurrentPrice = () => {
     if (!selectedProduct) return 0;
-    return selectedProduct.variants?.[selectedVariant || 0]?.price || selectedProduct.price;
+    if (variants.length > 0) {
+      return variants[selectedVariant || 0]?.price || selectedProduct.price;
+    }
+    return selectedProduct.price;
   };
 
   return (
@@ -132,46 +157,79 @@ export function CartDrawer({ isOpen, onClose, selectedProduct }: CartDrawerProps
               </div>
 
               {/* Variants Selection */}
-              {selectedProduct.variants && selectedProduct.variants.length > 0 && (
+              {selectedProduct.hasVariant && (
                 <div>
                   <h4 className="font-medium text-gray-900 mb-3">選擇規格</h4>
-                  <div className="grid grid-cols-1 gap-2">
-                    {selectedProduct.variants.map((variant, index) => (
-                      <div
-                        key={index}
-                        onClick={() => setSelectedVariant(index)}
-                        className={`border rounded-lg p-3 transition-all duration-200 cursor-pointer ${
-                          selectedVariant === index
-                            ? 'border-orange-500 bg-orange-50 shadow-md'
-                            : 'border-gray-200 hover:border-orange-300 hover:bg-orange-25'
-                        }`}
-                      >
-                        <div className="flex items-center space-x-3">
-                          <img
-                            src={variant.image_url}
-                            alt={variant.name}
-                            className="w-12 h-12 object-cover rounded"
-                          />
-                          <div className="flex-1 min-w-0">
-                            <h5 className="font-medium text-gray-900 text-sm">
-                              {variant.name}
-                            </h5>
-                            <div className="flex justify-between items-center mt-1">
-                              <p className="text-sm font-bold text-orange-600">
-                                NT$ {variant.price.toLocaleString()}
-                              </p>
-                              <Badge
-                                variant={variant.stock_count > 0 ? "default" : "secondary"}
-                                className={`text-xs ${variant.stock_count > 0 ? "bg-green-500" : ""}`}
-                              >
-                                {variant.stock_count > 0 ? `庫存 ${variant.stock_count}` : '缺貨'}
-                              </Badge>
+
+                  {/* Loading State */}
+                  {isLoadingVariants && (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="h-6 w-6 animate-spin text-orange-500" />
+                      <span className="ml-2 text-gray-600">載入規格中...</span>
+                    </div>
+                  )}
+
+                  {/* Error State */}
+                  {variantsError && !isLoadingVariants && (
+                    <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-4">
+                      <div className="flex">
+                        <div className="flex-shrink-0">
+                          <X className="h-5 w-5 text-red-400" />
+                        </div>
+                        <div className="ml-3">
+                          <p className="text-sm text-red-800">{variantsError}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Variants List */}
+                  {!isLoadingVariants && !variantsError && variants.length > 0 && (
+                    <div className="grid grid-cols-1 gap-2">
+                      {variants.map((variant, index) => (
+                        <div
+                          key={variant.uuid}
+                          onClick={() => setSelectedVariant(index)}
+                          className={`border rounded-lg p-3 transition-all duration-200 cursor-pointer ${
+                            selectedVariant === index
+                              ? 'border-orange-500 bg-orange-50 shadow-md'
+                              : 'border-gray-200 hover:border-orange-300 hover:bg-orange-25'
+                          }`}
+                        >
+                          <div className="flex items-center space-x-3">
+                            <img
+                              src={variant.image_url}
+                              alt={variant.name}
+                              className="w-12 h-12 object-cover rounded"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <h5 className="font-medium text-gray-900 text-sm">
+                                {variant.name}
+                              </h5>
+                              <div className="flex justify-between items-center mt-1">
+                                <p className="text-sm font-bold text-orange-600">
+                                  NT$ {variant.price.toLocaleString()}
+                                </p>
+                                <Badge
+                                  variant={variant.stock_count > 0 ? "default" : "secondary"}
+                                  className={`text-xs ${variant.stock_count > 0 ? "bg-green-500" : ""}`}
+                                >
+                                  {variant.stock_count > 0 ? `庫存 ${variant.stock_count}` : '缺貨'}
+                                </Badge>
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* No variants found */}
+                  {!isLoadingVariants && !variantsError && variants.length === 0 && selectedProduct.hasVariant && (
+                    <div className="text-center py-4">
+                      <p className="text-gray-500 text-sm">未找到商品規格</p>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -214,10 +272,12 @@ export function CartDrawer({ isOpen, onClose, selectedProduct }: CartDrawerProps
               {/* Add to Cart Button */}
               <Button
                 onClick={handleAddToCart}
-                disabled={getCurrentStock() === 0}
+                disabled={getCurrentStock() === 0 || (selectedProduct.hasVariant && variants.length > 0 && selectedVariant === null)}
                 className="w-full bg-orange-500 hover:bg-orange-600 text-white rounded-full h-12"
               >
-                加入購物車 - NT$ {(getCurrentPrice() * quantity).toLocaleString()}
+                {selectedProduct.hasVariant && variants.length > 0 && selectedVariant === null
+                  ? '請選擇規格'
+                  : `加入購物車 - NT$ ${(getCurrentPrice() * quantity).toLocaleString()}`}
               </Button>
             </div>
           )}

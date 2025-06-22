@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Link } from '@remix-run/react';
-import { type Product } from '@/routes/shop/api';
+import { type Product } from '~/routes/shop/api.server';
 
 import placeholderUrl from '@/assets/placeholder.svg';
 

@@ -28,7 +28,30 @@ export interface ProductsApiResponse {
   };
 }
 
-// Product interface (matching ProductCard component)
+// Add interface for variant API response
+export interface ProductVariantsApiResponse {
+  data: {
+    variants: Array<{
+      name: string;
+      sku: string;
+      stock_count: number;
+      image_url: string;
+      price: number;
+      uuid: string;
+    }>;
+  };
+  errors: null;
+}
+
+export interface ProductVariant {
+  name: string;
+  sku: string;
+  stock_count: number;
+  image_url: string;
+  price: number;
+  uuid: string;
+}
+
 export interface Product {
   uuid: string;
   name: string;
@@ -41,6 +64,7 @@ export interface Product {
   inStock: boolean;
   description?: string;
   category?: string;
+  hasVariant: boolean;
 }
 
 // Transform API product to our Product interface
@@ -57,10 +81,10 @@ export function transformApiProduct(apiProduct: ApiProduct): Product {
     inStock: apiProduct.stock_count > 0,
     description: apiProduct.short_desc || undefined,
     category: apiProduct.category || undefined,
+    hasVariant: apiProduct.has_variant,
   };
 }
 
-// Server-side API call (for loaders)
 export async function fetchProducts(): Promise<Product[]> {
   const env = getClientEnv();
   const apiUrl = env.API_URL;
@@ -77,4 +101,23 @@ export async function fetchProducts(): Promise<Product[]> {
 
   const data: ProductsApiResponse = await response.json();
   return data.data.products.map(transformApiProduct);
+}
+
+// Add function to fetch product variants (server-side)
+export async function fetchProductVariants(uuid: string): Promise<ProductVariant[]> {
+  const env = getClientEnv();
+  const apiUrl = env.API_URL;
+
+  if (!apiUrl) {
+    throw new Error('API_URL is not configured');
+  }
+
+  const response = await fetch(`${apiUrl}/v1/products/${uuid}/variants`);
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch variants: ${response.status} ${response.statusText}`);
+  }
+
+  const data: ProductVariantsApiResponse = await response.json();
+  return data.data.variants;
 }
