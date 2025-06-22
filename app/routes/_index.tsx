@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Link } from '@remix-run/react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useCart } from '@/contexts/CartContext';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { ProductCard } from '@/components/ProductCard';
@@ -9,7 +8,7 @@ import { CartDrawer } from '@/components/CartDrawer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+
 
 import placeholderUrl from '@/assets/placeholder.svg';
 
@@ -100,10 +99,8 @@ const pets = [
 
 const Index = () => {
   const { t } = useLanguage();
-  const { addItem } = useCart();
   const [email, setEmail] = useState('');
-  const [currentSlide, setCurrentSlide] = useState(0);
-  
+
   // Cart drawer state
   const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
   const [selectedProductForCart, setSelectedProductForCart] = useState<Product | null>(null);
@@ -137,13 +134,7 @@ const Index = () => {
     setSelectedProductForCart(null);
   };
 
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % featuredProducts.length);
-  };
 
-  const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + featuredProducts.length) % featuredProducts.length);
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 via-green-50 to-white">
@@ -182,60 +173,16 @@ const Index = () => {
             </h2>
           </div>
 
-          <div className="relative">
-            {/* Mobile Carousel */}
-            <div className="md:hidden">
-              <div className="relative overflow-hidden rounded-xl">
-                <div
-                  className="flex transition-transform duration-300 ease-in-out"
-                  style={{ transform: `translateX(-${currentSlide * 100}%)` }}
-                >
-                  {featuredProducts.map((product) => (
-                    <div key={product.uuid} className="w-full flex-shrink-0 px-2">
-                      <ProductCard
-                        key={product.uuid}
-                        product={product}
-                        onAddToCart={handleAddToCart}
-                        variant="homepage"
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Carousel Controls */}
-              <div className="flex justify-center items-center mt-4 space-x-4">
-                <Button variant="outline" size="icon" onClick={prevSlide} className="border-blue-300 text-blue-500">
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <div className="flex space-x-2">
-                  {featuredProducts.map((_, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setCurrentSlide(index)}
-                      className={`w-2 h-2 rounded-full transition-colors ${
-                        index === currentSlide ? 'bg-blue-500' : 'bg-gray-300'
-                      }`}
-                    />
-                  ))}
-                </div>
-                <Button variant="outline" size="icon" onClick={nextSlide} className="border-blue-300 text-blue-500">
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-
-            {/* Desktop Grid */}
-            <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {featuredProducts.map((product) => (
-                <ProductCard
-                  key={product.uuid}
-                  product={product}
-                  onAddToCart={handleAddToCart}
-                  variant="homepage"
-                />
-              ))}
-            </div>
+          {/* Products Grid */}
+          <div className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-4">
+            {featuredProducts.map((product) => (
+              <ProductCard
+                key={product.uuid}
+                product={product}
+                onAddToCart={handleAddToCart}
+                variant="homepage"
+              />
+            ))}
           </div>
         </div>
       </section>
@@ -249,7 +196,7 @@ const Index = () => {
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-4">
             {pets.map((pet, index) => (
               <Card key={index} className="overflow-hidden hover:shadow-lg transition-shadow bg-white border-2 border-transparent hover:border-blue-200">
                 <div className="aspect-square bg-gradient-to-br from-yellow-100 to-green-100">
