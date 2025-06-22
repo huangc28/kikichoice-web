@@ -113,7 +113,7 @@ const Cart = () => {
                           type="number"
                           value={item.quantity}
                           onChange={(e) => updateQuantity(productUuid, parseInt(e.target.value) || 1)}
-                          className="w-16 h-8 text-center"
+                          className="w-16 h-8 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                           min="1"
                           max={item.stock}
                         />
