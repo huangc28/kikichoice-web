@@ -10,9 +10,17 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+} from '@/components/ui/drawer';
 import { Link, useFetcher } from '@remix-run/react';
 import { Minus, Plus, X, ShoppingBag, Loader2 } from 'lucide-react';
 import { type ProductVariant } from '@/routes/shop/api.server';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -31,7 +39,16 @@ interface CartDrawerProps {
   } | null;
 }
 
-export function CartDrawer({ isOpen, onClose, selectedProduct }: CartDrawerProps) {
+// Shared content component to avoid duplication
+function CartDrawerContent({ 
+  selectedProduct, 
+  onClose, 
+  isMobile = false 
+}: { 
+  selectedProduct: CartDrawerProps['selectedProduct'];
+  onClose: () => void;
+  isMobile?: boolean;
+}) {
   const { items, addItem, removeItem, getTotalPrice, getTotalItems } = useCart();
 
   // Use Remix fetcher for variants
@@ -114,253 +131,262 @@ export function CartDrawer({ isOpen, onClose, selectedProduct }: CartDrawerProps
   };
 
   return (
-    <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent className="w-full sm:max-w-lg flex flex-col">
-        <SheetHeader>
-          <SheetTitle className="flex items-center gap-2">
+    <div className={`flex flex-col ${isMobile ? 'h-full' : 'h-full'}`}>
+      {/* Header */}
+      <div className="flex-shrink-0 p-4 border-b">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
             <ShoppingBag className="h-5 w-5" />
-            購物車
-          </SheetTitle>
-          <SheetDescription>
-            {selectedProduct ? '選擇商品規格和數量' : '查看購物車內容'}
-          </SheetDescription>
-        </SheetHeader>
+            <span className="text-lg font-semibold">購物車</span>
+          </div>
+          {isMobile && (
+            <Button variant="ghost" size="sm" onClick={onClose}>
+              <X className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+        <p className="text-sm text-gray-600 mt-1">
+          {selectedProduct ? '選擇商品規格和數量' : '查看購物車內容'}
+        </p>
+      </div>
 
-        <div className="flex-1 overflow-y-auto">
-          {/* Product Selection Section */}
-          {selectedProduct && (
-            <div className="space-y-6 pb-6 border-b">
-              <div className="flex items-start space-x-4">
-                <img
-                  src={selectedProduct.image}
-                  alt={selectedProduct.name}
-                  className="w-20 h-20 object-cover rounded-lg bg-gray-100"
-                />
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-gray-900 mb-2">
-                    {selectedProduct.name}
-                  </h3>
-                  <div className="flex items-center space-x-2 mb-2">
-                    <span className="text-lg font-bold text-orange-600">
-                      NT$ {getCurrentPrice().toLocaleString()}
+      {/* Scrollable Content */}
+      <div className="flex-1 overflow-y-auto p-4">
+        {/* Product Selection Section */}
+        {selectedProduct && (
+          <div className="space-y-6 pb-6 border-b mb-6">
+            <div className="flex items-start space-x-4">
+              <img
+                src={selectedProduct.image}
+                alt={selectedProduct.name}
+                className="w-20 h-20 object-cover rounded-lg bg-gray-100"
+              />
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-gray-900 mb-2">
+                  {selectedProduct.name}
+                </h3>
+                <div className="flex items-center space-x-2 mb-2">
+                  <span className="text-lg font-bold text-orange-600">
+                    NT$ {getCurrentPrice().toLocaleString()}
+                  </span>
+                  {selectedProduct.originalPrice && (
+                    <span className="text-sm text-gray-500 line-through">
+                      NT$ {selectedProduct.originalPrice.toLocaleString()}
                     </span>
-                    {selectedProduct.originalPrice && (
-                      <span className="text-sm text-gray-500 line-through">
-                        NT$ {selectedProduct.originalPrice.toLocaleString()}
-                      </span>
-                    )}
-                  </div>
-                  <Badge variant={getCurrentStock() > 0 ? "default" : "secondary"} className={getCurrentStock() > 0 ? "bg-green-500" : ""}>
-                    {getCurrentStock() > 0 ? `庫存 ${getCurrentStock()}` : '缺貨'}
-                  </Badge>
+                  )}
                 </div>
+                <Badge variant={getCurrentStock() > 0 ? "default" : "secondary"} className={getCurrentStock() > 0 ? "bg-green-500" : ""}>
+                  {getCurrentStock() > 0 ? `庫存 ${getCurrentStock()}` : '缺貨'}
+                </Badge>
               </div>
+            </div>
 
-              {/* Variants Selection */}
-              {selectedProduct.hasVariant && (
-                <div>
-                  <h4 className="font-medium text-gray-900 mb-3">選擇規格</h4>
+            {/* Variants Selection */}
+            {selectedProduct.hasVariant && (
+              <div>
+                <h4 className="font-medium text-gray-900 mb-3">選擇規格</h4>
 
-                  {/* Loading State */}
-                  {isLoadingVariants && (
-                    <div className="flex items-center justify-center py-8">
-                      <Loader2 className="h-6 w-6 animate-spin text-orange-500" />
-                      <span className="ml-2 text-gray-600">載入規格中...</span>
-                    </div>
-                  )}
+                {/* Loading State */}
+                {isLoadingVariants && (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin text-orange-500" />
+                    <span className="ml-2 text-gray-600">載入規格中...</span>
+                  </div>
+                )}
 
-                  {/* Error State */}
-                  {variantsError && !isLoadingVariants && (
-                    <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-4">
-                      <div className="flex">
-                        <div className="flex-shrink-0">
-                          <X className="h-5 w-5 text-red-400" />
-                        </div>
-                        <div className="ml-3 flex-1">
-                          <p className="text-sm text-red-800">{variantsError}</p>
-                        </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            if (selectedProduct?.uuid) {
-                              variantsFetcher.load(`/api/products/${selectedProduct.uuid}/variants`);
-                            }
-                          }}
-                          className="ml-2 text-xs px-2 py-1 h-auto"
-                        >
-                          重試
-                        </Button>
+                {/* Error State */}
+                {variantsError && !isLoadingVariants && (
+                  <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-4">
+                    <div className="flex">
+                      <div className="flex-shrink-0">
+                        <X className="h-5 w-5 text-red-400" />
                       </div>
+                      <div className="ml-3 flex-1">
+                        <p className="text-sm text-red-800">{variantsError}</p>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          if (selectedProduct?.uuid) {
+                            variantsFetcher.load(`/api/products/${selectedProduct.uuid}/variants`);
+                          }
+                        }}
+                        className="ml-2 text-xs px-2 py-1 h-auto"
+                      >
+                        重試
+                      </Button>
                     </div>
-                  )}
+                  </div>
+                )}
 
-                  {/* Variants List */}
-                  {!isLoadingVariants && !variantsError && variants.length > 0 && (
-                    <div className="grid grid-cols-1 gap-2">
-                      {variants.map((variant, index) => (
-                        <div
-                          key={variant.uuid}
-                          onClick={() => setSelectedVariant(index)}
-                          className={`border rounded-lg p-3 transition-all duration-200 cursor-pointer ${
-                            selectedVariant === index
-                              ? 'border-orange-500 bg-orange-50 shadow-md'
-                              : 'border-gray-200 hover:border-orange-300 hover:bg-orange-25'
-                          }`}
-                        >
-                          <div className="flex items-center space-x-3">
-                            <img
-                              src={variant.image_url}
-                              alt={variant.name}
-                              className="w-12 h-12 object-cover rounded"
-                            />
-                            <div className="flex-1 min-w-0">
-                              <h5 className="font-medium text-gray-900 text-sm">
-                                {variant.name}
-                              </h5>
-                              <div className="flex justify-between items-center mt-1">
-                                <p className="text-sm font-bold text-orange-600">
-                                  NT$ {variant.price.toLocaleString()}
-                                </p>
-                                <Badge
-                                  variant={variant.stock_count > 0 ? "default" : "secondary"}
-                                  className={`text-xs ${variant.stock_count > 0 ? "bg-green-500" : ""}`}
-                                >
-                                  {variant.stock_count > 0 ? `庫存 ${variant.stock_count}` : '缺貨'}
-                                </Badge>
-                              </div>
+                {/* Variants List */}
+                {!isLoadingVariants && !variantsError && variants.length > 0 && (
+                  <div className="grid grid-cols-1 gap-2">
+                    {variants.map((variant, index) => (
+                      <div
+                        key={variant.uuid}
+                        onClick={() => setSelectedVariant(index)}
+                        className={`border rounded-lg p-3 transition-all duration-200 cursor-pointer ${
+                          selectedVariant === index
+                            ? 'border-orange-500 bg-orange-50 shadow-md'
+                            : 'border-gray-200 hover:border-orange-300 hover:bg-orange-25'
+                        }`}
+                      >
+                        <div className="flex items-center space-x-3">
+                          <img
+                            src={variant.image_url}
+                            alt={variant.name}
+                            className="w-12 h-12 object-cover rounded"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <h5 className="font-medium text-gray-900 text-sm">
+                              {variant.name}
+                            </h5>
+                            <div className="flex justify-between items-center mt-1">
+                              <p className="text-sm font-bold text-orange-600">
+                                NT$ {variant.price.toLocaleString()}
+                              </p>
+                              <Badge
+                                variant={variant.stock_count > 0 ? "default" : "secondary"}
+                                className={`text-xs ${variant.stock_count > 0 ? "bg-green-500" : ""}`}
+                              >
+                                {variant.stock_count > 0 ? `庫存 ${variant.stock_count}` : '缺貨'}
+                              </Badge>
                             </div>
                           </div>
                         </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* No variants found */}
-                  {!isLoadingVariants && !variantsError && variants.length === 0 && selectedProduct.hasVariant && (
-                    <div className="text-center py-4">
-                      <p className="text-gray-500 text-sm">未找到商品規格</p>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Quantity Selection */}
-              {!isLoadingVariants && (
-                <div>
-                  <h4 className="font-medium text-gray-900 mb-3">數量</h4>
-                  <div className="flex items-center space-x-3">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleQuantityChange(quantity - 1)}
-                      disabled={quantity <= 1 || (selectedProduct.hasVariant && !!variantsError)}
-                      className="h-10 w-10 p-0"
-                    >
-                      <Minus className="h-4 w-4" />
-                    </Button>
-                    <Input
-                      type="number"
-                      value={quantity}
-                      onChange={(e) => handleQuantityChange(parseInt(e.target.value) || 1)}
-                      disabled={selectedProduct.hasVariant && !!variantsError}
-                      className="w-20 h-10 text-center [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
-                      min="1"
-                      max={getCurrentStock()}
-                    />
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleQuantityChange(quantity + 1)}
-                      disabled={quantity >= getCurrentStock() || (selectedProduct.hasVariant && !!variantsError)}
-                      className="h-10 w-10 p-0"
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                    <span className="text-sm text-gray-500">
-                      (最多 {getCurrentStock()} 件)
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              {/* Add to Cart Button */}
-              <Button
-                onClick={handleAddToCart}
-                disabled={getCurrentStock() === 0 || (selectedProduct.hasVariant && variants.length > 0 && selectedVariant === null) || isLoadingVariants || (selectedProduct.hasVariant && !!variantsError)}
-                className="w-full bg-orange-500 hover:bg-orange-600 text-white rounded-full h-12"
-              >
-                {isLoadingVariants
-                  ? '載入中...'
-                  : selectedProduct.hasVariant && variantsError
-                  ? '規格載入失敗'
-                  : selectedProduct.hasVariant && variants.length > 0 && selectedVariant === null
-                  ? '請選擇規格'
-                  : `加入購物車 - NT$ ${(getCurrentPrice() * quantity).toLocaleString()}`}
-              </Button>
-            </div>
-          )}
-
-          {/* Cart Items Section */}
-          <div className="space-y-4 pt-6">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-gray-900">
-                購物車商品 ({getTotalItems()})
-              </h3>
-              {Object.keys(items).length > 0 && (
-                <Link to="/cart" onClick={onClose}>
-                  <Button variant="outline" size="sm">
-                    查看購物車
-                  </Button>
-                </Link>
-              )}
-            </div>
-
-            {Object.keys(items).length === 0 ? (
-              <div className="text-center py-8">
-                <ShoppingBag className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500">購物車是空的</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {Object.entries(items).map(([productUuid, item]) => (
-                  <div key={productUuid} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                    <img
-                      src={item.image}
-                      alt={item.name}
-                      className="w-12 h-12 object-cover rounded bg-gray-100"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-gray-900 text-sm line-clamp-2">
-                        {item.name}
-                      </h4>
-                      <div className="flex items-center justify-between mt-1">
-                        <span className="text-sm text-gray-600">
-                          數量: {item.quantity}
-                        </span>
-                        <span className="text-sm font-bold text-orange-600">
-                          NT$ {(item.price * item.quantity).toLocaleString()}
-                        </span>
                       </div>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeItem(productUuid)}
-                      className="text-red-500 hover:text-red-700 hover:bg-red-50 h-8 w-8 p-0"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
+                    ))}
                   </div>
-                ))}
+                )}
+
+                {/* No variants found */}
+                {!isLoadingVariants && !variantsError && variants.length === 0 && selectedProduct.hasVariant && (
+                  <div className="text-center py-4">
+                    <p className="text-gray-500 text-sm">未找到商品規格</p>
+                  </div>
+                )}
               </div>
             )}
-          </div>
-        </div>
 
-        {/* Footer with Total and Checkout */}
-        {Object.keys(items).length > 0 && (
-          <div className="border-t pt-4 space-y-4">
+            {/* Quantity Selection */}
+            {!isLoadingVariants && (
+              <div>
+                <h4 className="font-medium text-gray-900 mb-3">數量</h4>
+                <div className="flex items-center space-x-3">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleQuantityChange(quantity - 1)}
+                    disabled={quantity <= 1 || (selectedProduct.hasVariant && !!variantsError)}
+                    className="h-10 w-10 p-0"
+                  >
+                    <Minus className="h-4 w-4" />
+                  </Button>
+                  <Input
+                    type="number"
+                    value={quantity}
+                    onChange={(e) => handleQuantityChange(parseInt(e.target.value) || 1)}
+                    disabled={selectedProduct.hasVariant && !!variantsError}
+                    className="w-20 h-10 text-center [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
+                    min="1"
+                    max={getCurrentStock()}
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleQuantityChange(quantity + 1)}
+                    disabled={quantity >= getCurrentStock() || (selectedProduct.hasVariant && !!variantsError)}
+                    className="h-10 w-10 p-0"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                  <span className="text-sm text-gray-500">
+                    (最多 {getCurrentStock()} 件)
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Add to Cart Button */}
+            <Button
+              onClick={handleAddToCart}
+              disabled={getCurrentStock() === 0 || (selectedProduct.hasVariant && variants.length > 0 && selectedVariant === null) || isLoadingVariants || (selectedProduct.hasVariant && !!variantsError)}
+              className="w-full bg-orange-500 hover:bg-orange-600 text-white rounded-full h-12"
+            >
+              {isLoadingVariants
+                ? '載入中...'
+                : selectedProduct.hasVariant && variantsError
+                ? '規格載入失敗'
+                : selectedProduct.hasVariant && variants.length > 0 && selectedVariant === null
+                ? '請選擇規格'
+                : `加入購物車 - NT$ ${(getCurrentPrice() * quantity).toLocaleString()}`}
+            </Button>
+          </div>
+        )}
+
+        {/* Cart Items Section */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold text-gray-900">
+              購物車商品 ({getTotalItems()})
+            </h3>
+            {Object.keys(items).length > 0 && (
+              <Link to="/cart" onClick={onClose}>
+                <Button variant="outline" size="sm">
+                  查看購物車
+                </Button>
+              </Link>
+            )}
+          </div>
+
+          {Object.keys(items).length === 0 ? (
+            <div className="text-center py-8">
+              <ShoppingBag className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-500">購物車是空的</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {Object.entries(items).map(([productUuid, item]) => (
+                <div key={productUuid} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                  <img
+                    src={item.image}
+                    alt={item.name}
+                    className="w-12 h-12 object-cover rounded bg-gray-100"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-medium text-gray-900 text-sm line-clamp-2">
+                      {item.name}
+                    </h4>
+                    <div className="flex items-center justify-between mt-1">
+                      <span className="text-sm text-gray-600">
+                        數量: {item.quantity}
+                      </span>
+                      <span className="text-sm font-bold text-orange-600">
+                        NT$ {(item.price * item.quantity).toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeItem(productUuid)}
+                    className="text-red-500 hover:text-red-700 hover:bg-red-50 h-8 w-8 p-0"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Footer with Total and Checkout - Fixed at bottom */}
+      {Object.keys(items).length > 0 && (
+        <div className="flex-shrink-0 border-t p-4 bg-white">
+          <div className="space-y-4">
             <div className="flex justify-between items-center">
               <span className="text-lg font-semibold text-gray-900">總計</span>
               <span className="text-xl font-bold text-orange-600">
@@ -380,7 +406,47 @@ export function CartDrawer({ isOpen, onClose, selectedProduct }: CartDrawerProps
               </Link>
             </div>
           </div>
-        )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function CartDrawer({ isOpen, onClose, selectedProduct }: CartDrawerProps) {
+  const isMobile = useIsMobile();
+
+  if (isMobile) {
+    // Mobile: Use Drawer component that slides from bottom
+    return (
+      <Drawer open={isOpen} onOpenChange={onClose}>
+        <DrawerContent className="h-[85vh] max-h-[85vh]">
+          <DrawerHeader className="sr-only">
+            <DrawerTitle>購物車</DrawerTitle>
+            <DrawerDescription>選擇商品規格和數量</DrawerDescription>
+          </DrawerHeader>
+          <CartDrawerContent 
+            selectedProduct={selectedProduct} 
+            onClose={onClose} 
+            isMobile={true}
+          />
+        </DrawerContent>
+      </Drawer>
+    );
+  }
+
+  // Desktop: Use Sheet component that slides from right
+  return (
+    <Sheet open={isOpen} onOpenChange={onClose}>
+      <SheetContent className="w-full sm:max-w-lg flex flex-col">
+        <SheetHeader className="sr-only">
+          <SheetTitle>購物車</SheetTitle>
+          <SheetDescription>選擇商品規格和數量</SheetDescription>
+        </SheetHeader>
+        <CartDrawerContent 
+          selectedProduct={selectedProduct} 
+          onClose={onClose} 
+          isMobile={false}
+        />
       </SheetContent>
     </Sheet>
   );
