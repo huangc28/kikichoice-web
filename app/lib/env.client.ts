@@ -4,8 +4,12 @@ declare global {
       API_URL?: string;
       NODE_ENV?: string;
       GITHUB_RAW_CONTENT_URL?: string;
+
       CLERK_PUBLISHABLE_KEY?: string;
       CLERK_SECRET_KEY?: string;
+
+      LINE_ID?: string;
+      LINE_CHANNEL_SECRET?: string;
     };
   }
 }
