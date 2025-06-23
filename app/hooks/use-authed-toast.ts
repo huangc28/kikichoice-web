@@ -5,12 +5,15 @@ const DELAY_MS = 500;
 
 export const useAuthedToast = (authSuccess: string | null, authError: string | null) => {
   const { toast } = useToast();
+
   useEffect(() => {
     if (authError) {
       setTimeout(() => {
         toast({
-          title: "登入失敗",
+          variant: "error" as const,
+          title: "❌ 登入失敗",
           description: authError,
+          duration: 5000,
         });
       }, DELAY_MS);
     }
@@ -18,8 +21,10 @@ export const useAuthedToast = (authSuccess: string | null, authError: string | n
     if (authSuccess === "line") {
       setTimeout(() => {
         toast({
-          title: "登入成功",
+          variant: "success" as const,
+          title: "✅ 登入成功",
           description: "歡迎使用 LINE 登入！",
+          duration: 4000,
         });
       }, DELAY_MS);
     }
