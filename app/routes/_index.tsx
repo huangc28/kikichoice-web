@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Link } from '@remix-run/react';
+import { Link, useLoaderData } from '@remix-run/react';
+import { json, type LoaderFunctionArgs } from '@remix-run/node';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
@@ -8,67 +9,79 @@ import { CartDrawer } from '@/components/CartDrawer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 
 import placeholderUrl from '@/assets/placeholder.svg';
+import { fetchHotSellingProducts, type HotSellingProduct } from '@/lib/hot-selling-api';
 
-// Define Product interface for homepage
-interface Product {
-  uuid: string;
-  name: string;
-  sku: string;
-  slug: string;
-  price: number;
-  originalPrice?: number;
-  image: string;
-  inStock: boolean;
-  description?: string;
-  category?: string;
-}
+// Loader function to fetch hot selling products
+export const loader = async ({ request }: LoaderFunctionArgs) => {
+  try {
+    const hotSellingProducts = await fetchHotSellingProducts();
+    console.log('hotSellingProducts', hotSellingProducts);
+    return json({
+      hotSellingProducts,
+      error: null,
+    });
+  } catch (error) {
+    console.error('❌ Failed to fetch hot selling products:', error);
 
-const featuredProducts: Product[] = [
-  {
-    uuid: '1',
-    name: '高齡犬關節保健膠囊',
-    sku: 'DOG-JOINT-001',
-    slug: 'senior-dog-joint-supplement',
-    price: 980,
-    originalPrice: 1200,
-    image: placeholderUrl,
-    category: 'supplements',
-    inStock: true,
-  },
-  {
-    uuid: '2',
-    name: '軟質寵物床墊',
-    sku: 'PET-BED-001',
-    slug: 'soft-pet-mattress',
-    price: 1680,
-    image: placeholderUrl,
-    category: 'bedding',
-    inStock: true,
-  },
-  {
-    uuid: '3',
-    name: '易消化高齡貓糧',
-    sku: 'CAT-FOOD-001',
-    slug: 'senior-cat-food',
-    price: 650,
-    image: placeholderUrl,
-    category: 'food',
-    inStock: false,
-  },
-  {
-    uuid: '4',
-    name: '溫熱墊',
-    sku: 'HEAT-PAD-001',
-    slug: 'heating-pad',
-    price: 890,
-    image: placeholderUrl,
-    category: 'comfort',
-    inStock: true,
-  },
-];
+    // Return fallback products if API fails
+    const fallbackProducts: HotSellingProduct[] = [
+      {
+        uuid: '1',
+        name: '高齡犬關節保健膠囊',
+        sku: 'DOG-JOINT-001',
+        slug: 'senior-dog-joint-supplement',
+        price: 980,
+        originalPrice: 1200,
+        image: placeholderUrl,
+        stockCount: 10,
+        inStock: true,
+        hasVariant: false,
+      },
+      {
+        uuid: '2',
+        name: '軟質寵物床墊',
+        sku: 'PET-BED-001',
+        slug: 'soft-pet-mattress',
+        price: 1680,
+        image: placeholderUrl,
+        stockCount: 5,
+        inStock: true,
+        hasVariant: false,
+      },
+      {
+        uuid: '3',
+        name: '易消化高齡貓糧',
+        sku: 'CAT-FOOD-001',
+        slug: 'senior-cat-food',
+        price: 650,
+        image: placeholderUrl,
+        stockCount: 0,
+        inStock: false,
+        hasVariant: false,
+      },
+      {
+        uuid: '4',
+        name: '溫熱墊',
+        sku: 'HEAT-PAD-001',
+        slug: 'heating-pad',
+        price: 890,
+        image: placeholderUrl,
+        stockCount: 3,
+        inStock: true,
+        hasVariant: false,
+      },
+    ];
+
+    return json({
+      hotSellingProducts: fallbackProducts,
+      error: 'Failed to load latest products. Showing fallback products.',
+    });
+  }
+};
 
 const pets = [
   {
@@ -99,13 +112,17 @@ const pets = [
 
 const Index = () => {
   const { t } = useLanguage();
+  const loaderData = useLoaderData<typeof loader>();
   const [email, setEmail] = useState('');
 
   // Cart drawer state
   const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
-  const [selectedProductForCart, setSelectedProductForCart] = useState<Product | null>(null);
+  const [selectedProductForCart, setSelectedProductForCart] = useState<HotSellingProduct | null>(null);
 
-  const handleAddToCart = (product: Product) => {
+  const hotSellingProducts = loaderData.hotSellingProducts || [];
+  const error = loaderData.error;
+
+  const handleAddToCart = (product: HotSellingProduct) => {
     // Convert Product to the format expected by CartDrawer
     const productForDrawer = {
       uuid: product.uuid,
@@ -114,8 +131,10 @@ const Index = () => {
       price: product.price,
       originalPrice: product.originalPrice,
       image: product.image,
-      stockCount: product.inStock ? 999 : 0, // Default high stock for in-stock items
-      variants: [], // Homepage products don't have variants
+      stockCount: product.stockCount,
+      hasVariant: product.hasVariant,
+      slug: product.slug,
+      inStock: product.inStock,
     };
 
     setSelectedProductForCart(productForDrawer);
@@ -133,8 +152,6 @@ const Index = () => {
     setIsCartDrawerOpen(false);
     setSelectedProductForCart(null);
   };
-
-
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 via-green-50 to-white">
@@ -171,11 +188,21 @@ const Index = () => {
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
               {t('home.featured')}
             </h2>
+
+            {/* Error Alert */}
+            {error && (
+              <Alert className="mb-8 max-w-2xl mx-auto">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  {error}
+                </AlertDescription>
+              </Alert>
+            )}
           </div>
 
           {/* Products Grid */}
           <div className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-4">
-            {featuredProducts.map((product) => (
+            {hotSellingProducts.map((product) => (
               <ProductCard
                 key={product.uuid}
                 product={product}

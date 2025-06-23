@@ -19,16 +19,16 @@ const translations = {
     'nav.about': '關於我們',
     'nav.cart': '購物車',
     'nav.wishlist': '願望清單',
-    
+
     // Homepage
     'home.headline': '為高齡寵物精心挑選的用品',
     'home.subheadline': '來自四隻老毛孩家庭的溫暖推薦',
-    'home.featured': '精選商品',
+    'home.featured': '熱賣商品',
     'home.meet_pets': '認識我們的毛孩',
     'home.newsletter': '訂閱電子報',
     'home.newsletter.placeholder': '輸入您的電子郵件',
     'home.newsletter.button': '訂閱',
-    
+
     // Shop
     'shop.title': '商店',
     'shop.search': '搜尋商品',
@@ -38,25 +38,25 @@ const translations = {
     'shop.add_to_wishlist': '加入願望清單',
     'shop.out_of_stock': '缺貨',
     'shop.in_stock': '有庫存',
-    
+
     // Cart
     'cart.title': '購物車',
     'cart.empty': '購物車是空的',
     'cart.checkout': '結帳',
     'cart.quantity': '數量',
     'cart.total': '總計',
-    
+
     // Wishlist
     'wishlist.title': '願望清單',
     'wishlist.submit_request': '提交商品需求',
     'wishlist.product_name': '商品名稱',
     'wishlist.description': '描述',
     'wishlist.submit': '提交',
-    
+
     // About
     'about.title': '關於我們',
     'about.story': '我們的故事',
-    
+
     // Common
     'common.loading': '載入中...',
     'common.price': '價格',
@@ -69,7 +69,7 @@ const translations = {
     'nav.about': 'About',
     'nav.cart': 'Cart',
     'nav.wishlist': 'Wishlist',
-    
+
     // Homepage
     'home.headline': 'Carefully Curated Senior Pet Supplies',
     'home.subheadline': 'Recommended with love from a family of four elderly pets',
@@ -78,7 +78,7 @@ const translations = {
     'home.newsletter': 'Newsletter',
     'home.newsletter.placeholder': 'Enter your email',
     'home.newsletter.button': 'Subscribe',
-    
+
     // Shop
     'shop.title': 'Shop',
     'shop.search': 'Search products',
@@ -88,25 +88,25 @@ const translations = {
     'shop.add_to_wishlist': 'Add to Wishlist',
     'shop.out_of_stock': 'Out of Stock',
     'shop.in_stock': 'In Stock',
-    
+
     // Cart
     'cart.title': 'Shopping Cart',
     'cart.empty': 'Your cart is empty',
     'cart.checkout': 'Checkout',
     'cart.quantity': 'Quantity',
     'cart.total': 'Total',
-    
+
     // Wishlist
     'wishlist.title': 'Wishlist',
     'wishlist.submit_request': 'Submit Product Request',
     'wishlist.product_name': 'Product Name',
     'wishlist.description': 'Description',
     'wishlist.submit': 'Submit',
-    
+
     // About
     'about.title': 'About Us',
     'about.story': 'Our Story',
-    
+
     // Common
     'common.loading': 'Loading...',
     'common.price': 'Price',
@@ -118,7 +118,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [language, setLanguage] = useState<Language>('zh-TW');
 
   const t = (key: string): string => {
-    return translations[language][key] || key;
+    return translations[language][key as keyof typeof translations[typeof language]] || key;
   };
 
   return (
