@@ -1,15 +1,17 @@
 import { useState } from 'react';
 import { Link } from '@remix-run/react';
 import { useCart } from '@/contexts/CartContext';
+import { useUser, SignInButton, UserButton } from '@clerk/remix';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Search, ShoppingCart } from 'lucide-react';
+import { Search, ShoppingCart, User } from 'lucide-react';
 import { CartDrawer } from '@/components/CartDrawer';
 
 import logoUrl from '@/assets/logo.png';
 
 export const Header = () => {
   const { getTotalItems } = useCart();
+  const { isSignedIn, user } = useUser();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
 
@@ -68,6 +70,23 @@ export const Header = () => {
                 </Badge>
               )}
             </Button>
+
+            {/* Authentication */}
+            {isSignedIn ? (
+              <UserButton 
+                appearance={{
+                  elements: {
+                    avatarBox: "w-8 h-8"
+                  }
+                }}
+              />
+            ) : (
+              <SignInButton mode="modal">
+                <Button variant="ghost" size="icon">
+                  <User className="h-5 w-5" />
+                </Button>
+              </SignInButton>
+            )}
 
             {/* Mobile menu button */}
             <Button
@@ -128,6 +147,32 @@ export const Header = () => {
               >
                 願望清單
               </Link>
+              
+              {/* Mobile Auth Section */}
+              <div className="border-t pt-2 mt-2">
+                {isSignedIn ? (
+                  <div className="px-3 py-2 text-gray-700">
+                    <div className="flex items-center space-x-2">
+                      <UserButton 
+                        appearance={{
+                          elements: {
+                            avatarBox: "w-6 h-6"
+                          }
+                        }}
+                      />
+                      <span className="text-sm">
+                        {user?.firstName || user?.emailAddresses[0]?.emailAddress}
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <SignInButton mode="modal">
+                    <button className="px-3 py-2 text-gray-700 hover:text-blue-500 transition-colors rounded-md hover:bg-gray-50 w-full text-left">
+                      登入 / 註冊
+                    </button>
+                  </SignInButton>
+                )}
+              </div>
               </div>
             </div>
           </nav>

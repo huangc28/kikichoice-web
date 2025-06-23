@@ -19,7 +19,6 @@ import { fetchHotSellingProducts, type HotSellingProduct } from '@/lib/hot-selli
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   try {
     const hotSellingProducts = await fetchHotSellingProducts();
-    console.log('hotSellingProducts', hotSellingProducts);
     return json({
       hotSellingProducts,
       error: null,
