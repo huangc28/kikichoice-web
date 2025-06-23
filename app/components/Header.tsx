@@ -1,17 +1,21 @@
 import { useState } from 'react';
 import { Link } from '@remix-run/react';
 import { useCart } from '@/contexts/CartContext';
+import { useUser, UserButton } from '@clerk/remix';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Search, ShoppingCart } from 'lucide-react';
+import { Search, ShoppingCart, User } from 'lucide-react';
 import { CartDrawer } from '@/components/CartDrawer';
+import { AuthModal } from '@/components/auth';
 
 import logoUrl from '@/assets/logo.png';
 
 export const Header = () => {
   const { getTotalItems } = useCart();
+  const { isSignedIn, user } = useUser();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   return (
     <>
@@ -68,6 +72,25 @@ export const Header = () => {
                 </Badge>
               )}
             </Button>
+
+                        {/* Authentication */}
+            {isSignedIn ? (
+              <UserButton
+                appearance={{
+                  elements: {
+                    avatarBox: "w-8 h-8"
+                  }
+                }}
+              />
+            ) : (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsAuthModalOpen(true)}
+              >
+                <User className="h-5 w-5" />
+              </Button>
+            )}
 
             {/* Mobile menu button */}
             <Button
@@ -128,6 +151,36 @@ export const Header = () => {
               >
                 願望清單
               </Link>
+
+              {/* Mobile Auth Section */}
+              <div className="border-t pt-2 mt-2">
+                {isSignedIn ? (
+                  <div className="px-3 py-2 text-gray-700">
+                    <div className="flex items-center space-x-2">
+                      <UserButton
+                        appearance={{
+                          elements: {
+                            avatarBox: "w-6 h-6"
+                          }
+                        }}
+                      />
+                      <span className="text-sm">
+                        {user?.firstName || user?.emailAddresses[0]?.emailAddress}
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    className="px-3 py-2 text-gray-700 hover:text-blue-500 transition-colors rounded-md hover:bg-gray-50 w-full text-left"
+                    onClick={() => {
+                      setIsAuthModalOpen(true);
+                      setIsMenuOpen(false);
+                    }}
+                  >
+                    登入 / 註冊
+                  </button>
+                )}
+              </div>
               </div>
             </div>
           </nav>
@@ -139,6 +192,13 @@ export const Header = () => {
         isOpen={isCartDrawerOpen}
         onClose={() => setIsCartDrawerOpen(false)}
         selectedProduct={null}
+      />
+
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        defaultMode="signin"
       />
     </>
   );

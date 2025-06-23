@@ -7,6 +7,8 @@ import {
   useLoaderData,
 } from "@remix-run/react";
 import { json, type LinksFunction, type LoaderFunctionArgs } from '@vercel/remix'
+import { rootAuthLoader } from '@clerk/remix/ssr.server'
+import { ClerkApp } from '@clerk/remix'
 import { Analytics } from "@vercel/analytics/react";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { CartProvider } from "@/contexts/CartContext";
@@ -16,8 +18,10 @@ import { getClientEnv } from "@/lib/env.server";
 import styles from "./tailwind.css?url"
 
 export const loader = async (args: LoaderFunctionArgs) => {
-  return json({
-    ENV: getClientEnv(),
+  return rootAuthLoader(args, ({ request }) => {
+    return json({
+      ENV: getClientEnv(),
+    });
   });
 };
 
@@ -51,7 +55,7 @@ export const links: LinksFunction = () => [
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const data = useLoaderData<typeof loader>();
-  
+
   return (
     <html lang="en">
       <head>
@@ -76,7 +80,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
-export default function App() {
+function App() {
   return (
     <TooltipProvider>
       <WishlistProvider>
@@ -89,3 +93,5 @@ export default function App() {
     </TooltipProvider>
   );
 }
+
+export default ClerkApp(App);
