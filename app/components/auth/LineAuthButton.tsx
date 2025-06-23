@@ -4,6 +4,7 @@ import { Loader2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { getEnv } from '@/lib/env.client.js';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface LineAuthButtonProps {
   onSuccess: () => void;
@@ -11,9 +12,91 @@ interface LineAuthButtonProps {
   disabled?: boolean;
 }
 
+// Utility functions for mobile detection and LINE app detection
+const isMobileDevice = () => {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+};
+
+const isInLineApp = () => {
+  return /Line/i.test(navigator.userAgent);
+};
+
+const isIOS = () => {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent);
+};
+
+const isAndroid = () => {
+  return /Android/.test(navigator.userAgent);
+};
+
+// Function to attempt to open LINE app, with fallback to web auth
+const attemptLineAppAuth = (authUrl: string) => {
+  const isMobile = isMobileDevice();
+  const inLineApp = isInLineApp();
+
+  // If already in LINE app, proceed with normal web auth
+  if (inLineApp) {
+    window.location.href = authUrl;
+    return;
+  }
+
+  // If on mobile, try to open LINE app first
+  if (isMobile) {
+    let appOpened = false;
+
+    const visibilityChangeHandler = () => {
+      if (document.hidden) {
+        appOpened = true;
+        document.removeEventListener('visibilitychange', visibilityChangeHandler);
+      }
+    };
+
+    document.addEventListener('visibilitychange', visibilityChangeHandler);
+
+    // Set a fallback timer to use web auth if LINE app doesn't open
+    const fallbackTimer = setTimeout(() => {
+      if (!appOpened) {
+        document.removeEventListener('visibilitychange', visibilityChangeHandler);
+        window.location.href = authUrl;
+      }
+    }, 2500);
+
+    if (isIOS()) {
+      // For iOS, try LINE URL scheme first, then fallback
+      const lineAppScheme = `line://oauth/authorize?${new URL(authUrl).searchParams.toString()}`;
+
+      // Try to open LINE app with URL scheme
+      window.location.href = lineAppScheme;
+
+      // If that fails, the fallback timer will redirect to web auth
+    } else if (isAndroid()) {
+      // For Android, try intent URL for better app detection
+      const searchParams = new URL(authUrl).searchParams.toString();
+      const intentUrl = `intent://oauth/authorize?${searchParams}#Intent;scheme=line;package=jp.naver.line.android;S.browser_fallback_url=${encodeURIComponent(authUrl)};end`;
+
+      try {
+        window.location.href = intentUrl;
+      } catch (e) {
+        clearTimeout(fallbackTimer);
+        window.location.href = authUrl;
+      }
+    } else {
+      // Other mobile browsers: fallback to web auth
+      clearTimeout(fallbackTimer);
+      window.location.href = authUrl;
+    }
+
+    return;
+  }
+
+  // Desktop: use normal web auth
+  window.location.href = authUrl;
+};
+
 export const LineAuthButton = ({ onSuccess, onLoading, disabled }: LineAuthButtonProps) => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const isMobile = useIsMobile();
 
   const handleLineAuth = async () => {
     setIsLoading(true);
@@ -31,7 +114,7 @@ export const LineAuthButton = ({ onSuccess, onLoading, disabled }: LineAuthButto
       const state = crypto.randomUUID();
       sessionStorage.setItem('line_oauth_state', state);
 
-      // Build LINE OAuth URL
+      // Build LINE OAuth URL with mobile-optimized parameters
       const lineAuthUrl = new URL('https://access.line.me/oauth2/v2.1/authorize');
       lineAuthUrl.searchParams.set('response_type', 'code');
       lineAuthUrl.searchParams.set('client_id', env.LINE_ID);
@@ -39,8 +122,8 @@ export const LineAuthButton = ({ onSuccess, onLoading, disabled }: LineAuthButto
       lineAuthUrl.searchParams.set('state', state);
       lineAuthUrl.searchParams.set('scope', 'profile openid email');
 
-      // Redirect to LINE OAuth
-      window.location.href = lineAuthUrl.toString();
+      // Use mobile app auth on mobile, web auth on desktop
+      attemptLineAppAuth(lineAuthUrl.toString());
 
     } catch (err: any) {
       console.error('LINE authentication error:', err);
@@ -49,6 +132,10 @@ export const LineAuthButton = ({ onSuccess, onLoading, disabled }: LineAuthButto
       onLoading(false);
     }
   };
+
+  const buttonText = isMobile ?
+    (isInLineApp() ? '使用 LINE 登入' : '開啟 LINE 應用程式登入') :
+    '使用 LINE 登入';
 
   return (
     <div className="space-y-3">
@@ -82,8 +169,14 @@ export const LineAuthButton = ({ onSuccess, onLoading, disabled }: LineAuthButto
             </svg>
           )}
         </div>
-        {isLoading ? '登入中...' : '使用 LINE 登入'}
+        {isLoading ? '登入中...' : buttonText}
       </Button>
+
+      {isMobile && !isInLineApp() && (
+        <div className="text-xs text-gray-500 text-center">
+          點擊將嘗試開啟 LINE 應用程式進行驗證
+        </div>
+      )}
     </div>
   );
 };
