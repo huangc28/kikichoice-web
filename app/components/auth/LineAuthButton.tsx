@@ -12,45 +12,8 @@ interface LineAuthButtonProps {
   disabled?: boolean;
 }
 
-// Utility functions for mobile detection and LINE app detection
-const isMobileDevice = () => {
-  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-};
-
 const isInLineApp = () => {
   return /Line/i.test(navigator.userAgent);
-};
-
-
-
-// Function to handle mobile-optimized LINE authentication
-const handleMobileLineAuth = (authUrl: string) => {
-  const isMobile = isMobileDevice();
-  const inLineApp = isInLineApp();
-
-  // If already in LINE app, proceed with normal web auth
-  if (inLineApp) {
-    window.location.href = authUrl;
-    return;
-  }
-
-  // For mobile devices, use the standard OAuth URL
-  // LINE app will automatically intercept if installed
-  if (isMobile) {
-    // Create a mobile-optimized URL with additional parameters
-    const mobileAuthUrl = new URL(authUrl);
-
-    // Add mobile-specific parameters to improve the experience
-    mobileAuthUrl.searchParams.set('ui_locales', 'ja-JP en-US');
-
-    // For mobile browsers, LINE will automatically detect if the app is installed
-    // and offer to open it, or fallback to web authentication
-    window.location.href = mobileAuthUrl.toString();
-    return;
-  }
-
-  // Desktop: use normal web auth
-  window.location.href = authUrl;
 };
 
 export const LineAuthButton = ({ onSuccess, onLoading, disabled }: LineAuthButtonProps) => {
@@ -70,11 +33,9 @@ export const LineAuthButton = ({ onSuccess, onLoading, disabled }: LineAuthButto
         throw new Error('LINE_ID not configured');
       }
 
-      // Generate state for CSRF protection
       const state = crypto.randomUUID();
       sessionStorage.setItem('line_oauth_state', state);
 
-      // Build LINE OAuth URL with mobile-optimized parameters
       const lineAuthUrl = new URL('https://access.line.me/oauth2/v2.1/authorize');
       lineAuthUrl.searchParams.set('response_type', 'code');
       lineAuthUrl.searchParams.set('client_id', env.LINE_ID);
@@ -82,8 +43,13 @@ export const LineAuthButton = ({ onSuccess, onLoading, disabled }: LineAuthButto
       lineAuthUrl.searchParams.set('state', state);
       lineAuthUrl.searchParams.set('scope', 'profile openid email');
 
-      // Use mobile-optimized auth flow
-      handleMobileLineAuth(lineAuthUrl.toString());
+      // Add mobile-friendly parameters
+      if (isMobile) {
+        lineAuthUrl.searchParams.set('ui_locales', 'zh-TW,en-US');
+      }
+
+      // Simply redirect - let LINE handle auto login and app detection
+      window.location.href = lineAuthUrl.toString();
 
     } catch (err: any) {
       console.error('LINE authentication error:', err);
