@@ -35,6 +35,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
       ? "http://localhost:5173"
       : `https://${request.headers.get("host")}`;
 
+    console.log("Redirect URI being sent:", `${baseUrl}/auth/line/callback`);
+
     // Exchange authorization code for access token
     const tokenResponse = await fetch("https://api.line.me/oauth2/v2.1/token", {
       method: "POST",
