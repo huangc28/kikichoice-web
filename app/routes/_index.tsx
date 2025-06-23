@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link, useLoaderData } from '@remix-run/react';
+import { useState, useEffect } from 'react';
+import { Link, useLoaderData, useNavigate } from '@remix-run/react';
 import { json, type LoaderFunctionArgs } from '@remix-run/node';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Header } from '@/components/Header';
@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useToast } from '@/components/ui/use-toast';
 import { AlertCircle } from 'lucide-react';
 
 import placeholderUrl from '@/assets/placeholder.svg';
@@ -17,11 +18,17 @@ import { fetchHotSellingProducts, type HotSellingProduct } from '@/lib/hot-selli
 
 // Loader function to fetch hot selling products
 export const loader = async ({ request }: LoaderFunctionArgs) => {
+  const url = new URL(request.url);
+  const authError = url.searchParams.get("error");
+  const authSuccess = url.searchParams.get("auth_success");
+
   try {
     const hotSellingProducts = await fetchHotSellingProducts();
     return json({
       hotSellingProducts,
       error: null,
+      authError,
+      authSuccess,
     });
   } catch (error) {
     console.error('❌ Failed to fetch hot selling products:', error);
@@ -78,6 +85,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     return json({
       hotSellingProducts: fallbackProducts,
       error: 'Failed to load latest products. Showing fallback products.',
+      authError,
+      authSuccess,
     });
   }
 };
@@ -113,6 +122,8 @@ const Index = () => {
   const { t } = useLanguage();
   const loaderData = useLoaderData<typeof loader>();
   const [email, setEmail] = useState('');
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
   // Cart drawer state
   const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
@@ -120,6 +131,34 @@ const Index = () => {
 
   const hotSellingProducts = loaderData.hotSellingProducts || [];
   const error = loaderData.error;
+  const { authError, authSuccess } = loaderData;
+
+  // Handle auth success/error notifications
+  useEffect(() => {
+    if (authError) {
+      toast({
+        variant: "destructive",
+        title: "登入失敗",
+        description: authError,
+      });
+      // Clean up URL parameter
+      const url = new URL(window.location.href);
+      url.searchParams.delete("error");
+      navigate(url.pathname + url.search, { replace: true });
+    }
+
+    if (authSuccess === "line") {
+      toast({
+        title: "登入成功",
+        description: "歡迎使用 LINE 登入！",
+      });
+      // Clean up URL parameters
+      const url = new URL(window.location.href);
+      url.searchParams.delete("auth_success");
+      url.searchParams.delete("__clerk_session_token");
+      navigate(url.pathname + url.search, { replace: true });
+    }
+  }, [authError, authSuccess, toast, navigate]);
 
   const handleAddToCart = (product: HotSellingProduct) => {
     // Convert Product to the format expected by CartDrawer

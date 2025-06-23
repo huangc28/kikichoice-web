@@ -105,9 +105,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
       userId: user.id,
     });
 
-    // Redirect to success page with session
+    // Redirect to success page with session and success indicator
     const redirectUrl = new URL("/", baseUrl);
     redirectUrl.searchParams.set("__clerk_session_token", session.id);
+    redirectUrl.searchParams.set("auth_success", "line");
 
     return redirect(redirectUrl.toString());
 

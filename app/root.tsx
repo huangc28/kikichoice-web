@@ -13,6 +13,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { CartProvider } from "@/contexts/CartContext";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Toaster } from "@/components/ui/toaster";
 import { WishlistProvider } from "@/contexts/WishlistContext";
 import { getClientEnv } from "@/lib/env.server";
 import styles from "./tailwind.css?url"
@@ -87,6 +88,7 @@ function App() {
         <LanguageProvider>
           <CartProvider>
             <Outlet />
+            <Toaster />
           </CartProvider>
         </LanguageProvider>
       </WishlistProvider>
