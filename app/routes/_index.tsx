@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useLoaderData, useNavigate } from '@remix-run/react';
+import { Link, useLoaderData } from '@remix-run/react';
 import { json, type LoaderFunctionArgs } from '@remix-run/node';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Header } from '@/components/Header';

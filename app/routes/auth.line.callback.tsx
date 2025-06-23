@@ -105,12 +105,17 @@ export async function loader({ request }: LoaderFunctionArgs) {
       userId: user.id,
     });
 
-    // Redirect to success page with session and success indicator
-    const redirectUrl = new URL("/", baseUrl);
-    redirectUrl.searchParams.set("__clerk_session_token", session.id);
-    redirectUrl.searchParams.set("auth_success", "line");
+    // SECURE: Use HTTP-only cookie with Clerk session token
+    const redirectUrl = new URL("/auth/line/complete", baseUrl);
 
-    return redirect(redirectUrl.toString());
+    // Set secure HTTP-only cookie and redirect to completion page
+    return new Response(null, {
+      status: 302,
+      headers: {
+        "Location": redirectUrl.toString(),
+        "Set-Cookie": `__clerk_line_session=${session.id}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=300` // 5 minutes
+      }
+    });
 
   } catch (error) {
     console.error("LINE auth callback error:", error);
