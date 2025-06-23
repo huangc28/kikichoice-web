@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link, useLoaderData, useNavigate } from '@remix-run/react';
 import { json, type LoaderFunctionArgs } from '@remix-run/node';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -10,8 +10,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useToast } from '@/components/ui/use-toast';
 import { AlertCircle } from 'lucide-react';
+import { useAuthedToast } from '@/hooks/use-authed-toast';
 
 import placeholderUrl from '@/assets/placeholder.svg';
 import { fetchHotSellingProducts, type HotSellingProduct } from '@/lib/hot-selling-api';
@@ -34,56 +34,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     console.error('❌ Failed to fetch hot selling products:', error);
 
     // Return fallback products if API fails
-    const fallbackProducts: HotSellingProduct[] = [
-      {
-        uuid: '1',
-        name: '高齡犬關節保健膠囊',
-        sku: 'DOG-JOINT-001',
-        slug: 'senior-dog-joint-supplement',
-        price: 980,
-        originalPrice: 1200,
-        image: placeholderUrl,
-        stockCount: 10,
-        inStock: true,
-        hasVariant: false,
-      },
-      {
-        uuid: '2',
-        name: '軟質寵物床墊',
-        sku: 'PET-BED-001',
-        slug: 'soft-pet-mattress',
-        price: 1680,
-        image: placeholderUrl,
-        stockCount: 5,
-        inStock: true,
-        hasVariant: false,
-      },
-      {
-        uuid: '3',
-        name: '易消化高齡貓糧',
-        sku: 'CAT-FOOD-001',
-        slug: 'senior-cat-food',
-        price: 650,
-        image: placeholderUrl,
-        stockCount: 0,
-        inStock: false,
-        hasVariant: false,
-      },
-      {
-        uuid: '4',
-        name: '溫熱墊',
-        sku: 'HEAT-PAD-001',
-        slug: 'heating-pad',
-        price: 890,
-        image: placeholderUrl,
-        stockCount: 3,
-        inStock: true,
-        hasVariant: false,
-      },
-    ];
-
     return json({
-      hotSellingProducts: fallbackProducts,
+      hotSellingProducts: [],
       error: 'Failed to load latest products. Showing fallback products.',
       authError,
       authSuccess,
@@ -122,8 +74,6 @@ const Index = () => {
   const { t } = useLanguage();
   const loaderData = useLoaderData<typeof loader>();
   const [email, setEmail] = useState('');
-  const navigate = useNavigate();
-  const { toast } = useToast();
 
   // Cart drawer state
   const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
@@ -132,34 +82,9 @@ const Index = () => {
   const hotSellingProducts = loaderData.hotSellingProducts || [];
   const error = loaderData.error;
   const { authError, authSuccess } = loaderData;
+  useAuthedToast(authSuccess, authError);
 
   // Handle auth success/error notifications
-  useEffect(() => {
-    if (authError) {
-      toast({
-        variant: "destructive",
-        title: "登入失敗",
-        description: authError,
-      });
-      // Clean up URL parameter
-      const url = new URL(window.location.href);
-      url.searchParams.delete("error");
-      navigate(url.pathname + url.search, { replace: true });
-    }
-
-    if (authSuccess === "line") {
-      toast({
-        title: "登入成功",
-        description: "歡迎使用 LINE 登入！",
-      });
-      // Clean up URL parameters
-      const url = new URL(window.location.href);
-      url.searchParams.delete("auth_success");
-      url.searchParams.delete("__clerk_session_token");
-      navigate(url.pathname + url.search, { replace: true });
-    }
-  }, [authError, authSuccess, toast, navigate]);
-
   const handleAddToCart = (product: HotSellingProduct) => {
     // Convert Product to the format expected by CartDrawer
     const productForDrawer = {
@@ -194,8 +119,6 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 via-green-50 to-white">
       <Header />
-
-      {/* Hero Section */}
       <section className="relative py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto text-center">
           <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
