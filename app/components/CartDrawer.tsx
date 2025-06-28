@@ -40,11 +40,11 @@ interface CartDrawerProps {
 }
 
 // Shared content component to avoid duplication
-function CartDrawerContent({ 
-  selectedProduct, 
-  onClose, 
-  isMobile = false 
-}: { 
+function CartDrawerContent({
+  selectedProduct,
+  onClose,
+  isMobile = false
+}: {
   selectedProduct: CartDrawerProps['selectedProduct'];
   onClose: () => void;
   isMobile?: boolean;
@@ -328,18 +328,9 @@ function CartDrawerContent({
 
         {/* Cart Items Section */}
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="font-semibold text-gray-900">
-              購物車商品 ({getTotalItems()})
-            </h3>
-            {Object.keys(items).length > 0 && (
-              <Link to="/cart" onClick={onClose}>
-                <Button variant="outline" size="sm">
-                  查看購物車
-                </Button>
-              </Link>
-            )}
-          </div>
+          <h3 className="font-semibold text-gray-900">
+            購物車商品 ({getTotalItems()})
+          </h3>
 
           {Object.keys(items).length === 0 ? (
             <div className="text-center py-8">
@@ -393,18 +384,11 @@ function CartDrawerContent({
                 NT$ {getTotalPrice().toLocaleString()}
               </span>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <Link to="/cart" onClick={onClose}>
-                <Button variant="outline" className="w-full rounded-full">
-                  查看購物車
-                </Button>
-              </Link>
-              <Link to="/checkout" onClick={onClose}>
-                <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white rounded-full">
-                  立即結帳
-                </Button>
-              </Link>
-            </div>
+            <Link to="/checkout" onClick={onClose}>
+              <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white rounded-full">
+                立即結帳
+              </Button>
+            </Link>
           </div>
         </div>
       )}
@@ -424,9 +408,9 @@ export function CartDrawer({ isOpen, onClose, selectedProduct }: CartDrawerProps
             <DrawerTitle>購物車</DrawerTitle>
             <DrawerDescription>選擇商品規格和數量</DrawerDescription>
           </DrawerHeader>
-          <CartDrawerContent 
-            selectedProduct={selectedProduct} 
-            onClose={onClose} 
+          <CartDrawerContent
+            selectedProduct={selectedProduct}
+            onClose={onClose}
             isMobile={true}
           />
         </DrawerContent>
@@ -442,9 +426,9 @@ export function CartDrawer({ isOpen, onClose, selectedProduct }: CartDrawerProps
           <SheetTitle>購物車</SheetTitle>
           <SheetDescription>選擇商品規格和數量</SheetDescription>
         </SheetHeader>
-        <CartDrawerContent 
-          selectedProduct={selectedProduct} 
-          onClose={onClose} 
+        <CartDrawerContent
+          selectedProduct={selectedProduct}
+          onClose={onClose}
           isMobile={false}
         />
       </SheetContent>
