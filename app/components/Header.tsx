@@ -1,10 +1,16 @@
 import { useState } from 'react';
 import { Link } from '@remix-run/react';
 import { useCart } from '@/contexts/CartContext';
-import { useUser, UserButton } from '@clerk/remix';
+import { useUser, useClerk } from '@clerk/remix';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Search, ShoppingCart, User } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Search, ShoppingCart, User, LogOut } from 'lucide-react';
 import { CartDrawer } from '@/components/CartDrawer';
 import { AuthModal } from '@/components/auth';
 
@@ -13,9 +19,14 @@ import logoUrl from '@/assets/logo.png';
 export const Header = () => {
   const { getTotalItems } = useCart();
   const { isSignedIn, user } = useUser();
+  const { signOut } = useClerk();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
+  const handleSignOut = async () => {
+    await signOut({ redirectUrl: '/' });
+  };
 
   return (
     <>
@@ -75,13 +86,27 @@ export const Header = () => {
 
                         {/* Authentication */}
             {isSignedIn ? (
-              <UserButton
-                appearance={{
-                  elements: {
-                    avatarBox: "w-8 h-8"
-                  }
-                }}
-              />
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="relative">
+                    {user?.imageUrl ? (
+                      <img
+                        src={user.imageUrl}
+                        alt={user.firstName || 'User'}
+                        className="w-8 h-8 rounded-full object-cover"
+                      />
+                    ) : (
+                      <User className="h-5 w-5" />
+                    )}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    登出
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
               <Button
                 variant="ghost"
@@ -156,17 +181,29 @@ export const Header = () => {
               <div className="border-t pt-2 mt-2">
                 {isSignedIn ? (
                   <div className="px-3 py-2 text-gray-700">
-                    <div className="flex items-center space-x-2">
-                      <UserButton
-                        appearance={{
-                          elements: {
-                            avatarBox: "w-6 h-6"
-                          }
-                        }}
-                      />
-                      <span className="text-sm">
-                        {user?.firstName || user?.emailAddresses[0]?.emailAddress}
-                      </span>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        {user?.imageUrl ? (
+                          <img
+                            src={user.imageUrl}
+                            alt={user.firstName || 'User'}
+                            className="w-6 h-6 rounded-full object-cover"
+                          />
+                        ) : (
+                          <User className="h-4 w-4" />
+                        )}
+                        <span className="text-sm">
+                          {user?.firstName || user?.emailAddresses[0]?.emailAddress}
+                        </span>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleSignOut}
+                        className="text-xs px-2 py-1 h-auto"
+                      >
+                        登出
+                      </Button>
                     </div>
                   </div>
                 ) : (

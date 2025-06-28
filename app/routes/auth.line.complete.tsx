@@ -97,7 +97,7 @@ export default function LineAuthComplete() {
         // Redirect to home with error after a short delay
         setTimeout(() => {
           navigate('/?error=' + encodeURIComponent(errorMessage), { replace: true });
-        }, 2000);
+        }, 1500);
       }
     };
 
