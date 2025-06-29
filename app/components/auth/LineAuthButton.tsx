@@ -30,7 +30,7 @@ export const LineAuthButton = ({ onSuccess, onLoading, disabled }: LineAuthButto
     signIn.authenticateWithRedirect({
       strategy: 'oauth_line',
       redirectUrl: '/auth/line/callback',
-      redirectUrlComplete: '/',
+      redirectUrlComplete: '/auth/line/complete',
     }).catch((err) => {
       console.error('LINE authentication error:', err);
       setError('LINE 登入時發生錯誤，請稍後再試或使用其他方式登入。');
