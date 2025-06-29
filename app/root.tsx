@@ -83,16 +83,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 function App() {
   return (
-    <TooltipProvider>
-      <WishlistProvider>
-        <LanguageProvider>
-          <CartProvider>
-            <Outlet />
-            <Toaster />
-          </CartProvider>
-        </LanguageProvider>
-      </WishlistProvider>
-    </TooltipProvider>
+      <TooltipProvider>
+        <WishlistProvider>
+          <LanguageProvider>
+            <CartProvider>
+              <Outlet />
+              <Toaster />
+            </CartProvider>
+          </LanguageProvider>
+        </WishlistProvider>
+      </TooltipProvider>
   );
 }
 

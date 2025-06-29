@@ -3,8 +3,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import { getEnv } from '@/lib/env.client.js';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useSignIn } from '@clerk/remix';
 
 interface LineAuthButtonProps {
   onSuccess: () => void;
@@ -20,43 +20,23 @@ export const LineAuthButton = ({ onSuccess, onLoading, disabled }: LineAuthButto
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const isMobile = useIsMobile();
-
+  const { signIn, isLoaded } = useSignIn();
   const handleLineAuth = async () => {
+    if (!isLoaded) return;
     setIsLoading(true);
     onLoading(true);
     setError('');
 
-    try {
-      const env = getEnv();
-
-      if (!env.LINE_ID) {
-        throw new Error('LINE_ID not configured');
-      }
-
-      const state = crypto.randomUUID();
-      sessionStorage.setItem('line_oauth_state', state);
-
-      const lineAuthUrl = new URL('https://access.line.me/oauth2/v2.1/authorize');
-      lineAuthUrl.searchParams.set('response_type', 'code');
-      lineAuthUrl.searchParams.set('client_id', env.LINE_ID);
-      lineAuthUrl.searchParams.set('redirect_uri', `${window.location.origin}/auth/line/callback`);
-      lineAuthUrl.searchParams.set('state', state);
-      lineAuthUrl.searchParams.set('scope', 'profile openid email');
-
-      // Add mobile-friendly parameters
-      if (isMobile) {
-        lineAuthUrl.searchParams.set('ui_locales', 'zh-TW,en-US');
-      }
-
-      // Simply redirect - let LINE handle auto login and app detection
-      window.location.href = lineAuthUrl.toString();
-
-    } catch (err: any) {
+    signIn.authenticateWithRedirect({
+      strategy: 'oauth_line',
+      redirectUrl: '/auth/line/callback',
+      redirectUrlComplete: '/',
+    }).catch((err) => {
       console.error('LINE authentication error:', err);
       setError('LINE 登入時發生錯誤，請稍後再試或使用其他方式登入。');
       setIsLoading(false);
       onLoading(false);
-    }
+    });
   };
 
   const buttonText = isMobile ?

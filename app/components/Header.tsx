@@ -18,11 +18,19 @@ import logoUrl from '@/assets/logo.png';
 
 export const Header = () => {
   const { getTotalItems } = useCart();
-  const { isSignedIn, user } = useUser();
+  const { isSignedIn, user, isLoaded } = useUser();
   const { signOut } = useClerk();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
+  // Add debug logging to console
+  console.log('Header auth state:', {
+    isLoaded,
+    isSignedIn,
+    userId: user?.id,
+    timestamp: new Date().toISOString()
+  });
 
   const handleSignOut = async () => {
     await signOut({ redirectUrl: '/' });
@@ -84,8 +92,11 @@ export const Header = () => {
               )}
             </Button>
 
-                        {/* Authentication */}
-            {isSignedIn ? (
+            {/* Authentication */}
+            {!isLoaded ? (
+              // Show loading spinner while Clerk initializes
+              <div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse"></div>
+            ) : isSignedIn ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="relative">

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useLoaderData } from '@remix-run/react';
-import { useSignIn } from '@clerk/remix';
+import { useSignIn, useUser } from '@clerk/remix';
 import { json, type LoaderFunctionArgs } from "@remix-run/node";
 import { createClerkClient } from "@clerk/remix/api.server";
 import { getClientEnv } from "~/lib/env.server";
@@ -66,8 +66,10 @@ export default function LineAuthComplete() {
   const loaderData = useLoaderData<typeof loader>();
   const navigate = useNavigate();
   const { setActive, isLoaded } = useSignIn();
+  const { isSignedIn } = useUser();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [sessionActivated, setSessionActivated] = useState(false);
 
   useEffect(() => {
     const completeAuth = async () => {
@@ -84,9 +86,9 @@ export default function LineAuthComplete() {
 
         // Use the same pattern as SignInForm
         await setActive({ session: loaderData.sessionId });
+        setSessionActivated(true);
 
-        // Redirect to home with success indicator
-        navigate('/?auth_success=line', { replace: true });
+        // Don't navigate here - let the second useEffect handle it
 
       } catch (err) {
         console.error('LINE auth completion error:', err);
@@ -102,7 +104,15 @@ export default function LineAuthComplete() {
     };
 
     completeAuth().then(() => {});
-  }, [loaderData, navigate, setActive, isLoaded]);
+  }, [loaderData, setActive, isLoaded]);
+
+  // Wait for actual sign-in state change before redirecting
+  useEffect(() => {
+    if (sessionActivated && isSignedIn) {
+      // Now we know the user is actually signed in
+      navigate('/?auth_success=line', { replace: true });
+    }
+  }, [sessionActivated, isSignedIn, navigate]);
 
   if (isLoading) {
     return (
